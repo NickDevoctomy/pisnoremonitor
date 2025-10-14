@@ -6,6 +6,6 @@
         x:Class="PiSnoreMonitor.MainWindow"
         Title="PiSnoreMonitor">
 	<Grid>
-		<Button HorizontalAlignment="Center">Welcome to Avalonia!</Button>
+		<Button HorizontalAlignment="Center" Click="ClickHandler">Welcome to Avalonia!</Button>
 	</Grid>
 </Window>
