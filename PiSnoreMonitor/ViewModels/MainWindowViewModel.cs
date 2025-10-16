@@ -1,42 +1,29 @@
-using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Avalonia.Media;
 using PiSnoreMonitor.Services;
 
 namespace PiSnoreMonitor.ViewModels
 {
-    public class MainWindowViewModel : ViewModelBase
+    public partial class MainWindowViewModel : ViewModelBase
     {
         private readonly IWavRecorder _wavRecorder;
+
+        [ObservableProperty]
         private bool _isRecording = false;
+
+        [ObservableProperty]
         private IBrush _buttonBackground = Brushes.LightGray;
+
+        [ObservableProperty]
         private string _buttonText = "Start Recording";
 
         public MainWindowViewModel(IWavRecorder wavRecorder)
         {
             _wavRecorder = wavRecorder;
-            ToggleRecordingCommand = new RelayCommand(ToggleRecording);
         }
 
-        public bool IsRecording
-        {
-            get => _isRecording;
-            set => SetField(ref _isRecording, value);
-        }
-
-        public IBrush ButtonBackground
-        {
-            get => _buttonBackground;
-            set => SetField(ref _buttonBackground, value);
-        }
-
-        public string ButtonText
-        {
-            get => _buttonText;
-            set => SetField(ref _buttonText, value);
-        }
-
-        public ICommand ToggleRecordingCommand { get; }
-
+        [RelayCommand]
         private void ToggleRecording()
         {
             if (!IsRecording)
