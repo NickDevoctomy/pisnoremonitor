@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace PiSnoreMonitor
+namespace PiSnoreMonitor.Services
 {
     // Small wrapper so we can rent from ArrayPool and return later.
     public sealed class PooledBlock
@@ -19,7 +19,7 @@ namespace PiSnoreMonitor
     public class WavRecorder(
         int sampleRate,
         int channels,
-        uint framesPerBuffer) : IDisposable
+        uint framesPerBuffer) : IWavRecorder
     {
         private PortAudioSharp.Stream? paStream;
         private FileStream? fs;
@@ -38,7 +38,6 @@ namespace PiSnoreMonitor
             });
 
         // WAV constants for simple PCM header positions (no extra chunks)
-        private const int WavHeaderSize = 44;
         private const int RiffSizeOffset = 4;   // 4 bytes, little-endian
         private const int DataSizeOffset = 40;  // 4 bytes, little-endian
 
@@ -68,7 +67,7 @@ namespace PiSnoreMonitor
                 channelCount = channels,
                 sampleFormat = SampleFormat.Int16,
                 suggestedLatency = inputInfo.defaultLowInputLatency,
-                hostApiSpecificStreamInfo = IntPtr.Zero
+                hostApiSpecificStreamInfo = nint.Zero
             };
 
             fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read,
@@ -90,7 +89,7 @@ namespace PiSnoreMonitor
                 framesPerBuffer,
                 StreamFlags.NoFlag,
                 OutputStreamCallback,
-                userData: IntPtr.Zero);
+                userData: nint.Zero);
 
             paStream.Start();
         }
@@ -144,13 +143,13 @@ namespace PiSnoreMonitor
             StreamCallbackFlags statusFlags,
             nint userDataPtr)
         {
-            if (input == IntPtr.Zero || !running || channels <= 0)
+            if (input == nint.Zero || !running || channels <= 0)
             {
                 return StreamCallbackResult.Continue;
             }
 
             int bytesPerSample = 2;
-            int bytesNeeded = checked((int)(frameCount) * channels * bytesPerSample);
+            int bytesNeeded = checked((int)frameCount * channels * bytesPerSample);
 
             var block = new PooledBlock
             {
