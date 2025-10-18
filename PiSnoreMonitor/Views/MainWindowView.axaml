@@ -19,7 +19,11 @@
 
         <ProgressBar HorizontalAlignment="Stretch"
                      VerticalAlignment="Stretch"
-                     Margin="8"/>
+                     Margin="8"
+                     Minimum="0"
+                     Maximum="100"
+                     Orientation="Vertical"
+                     Value="{Binding Amplitude}"/>
 		<Button HorizontalAlignment="Center" 
                 Background="{Binding ButtonBackground}"
                 Content="{Binding ButtonText}"

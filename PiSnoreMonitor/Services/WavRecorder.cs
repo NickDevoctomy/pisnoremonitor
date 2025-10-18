@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PiSnoreMonitor.Services
 {
@@ -166,7 +167,11 @@ namespace PiSnoreMonitor.Services
             // Try to enqueue. If channel is full, drop oldest (per config) and still enqueue current.
             channel.Writer.TryWrite(block);
 
-            WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs());
+            float amplitude = CalculateAmplitude(block);
+            WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs
+            {
+                Amplitude = amplitude
+            });
 
             return StreamCallbackResult.Continue;
         }
@@ -207,6 +212,59 @@ namespace PiSnoreMonitor.Services
             {
                 Console.WriteLine($"WriterLoop exception: {ex}");
             }
+        }
+
+        private float CalculateAmplitude(PooledBlock block)
+        {
+            if (block.Buffer == null || block.Count == 0)
+            {
+                return 0.0f;
+            }
+            
+            // Convert byte count to sample count (16-bit samples = 2 bytes each)
+            int sampleCount = block.Count / 2;
+            if (sampleCount == 0) return 0.0f;
+            
+            // Calculate both RMS and peak amplitude for better sensitivity
+            double sum = 0;
+            short peak = 0;
+            
+            unsafe
+            {
+                fixed (byte* bufferPtr = block.Buffer)
+                {
+                    short* samples = (short*)bufferPtr;
+                    
+                    for (int i = 0; i < sampleCount; i++)
+                    {
+                        short sample = samples[i];
+                        sum += (double)sample * sample;
+                        
+                        // Track peak amplitude
+                        short absSample = (short)Math.Abs(sample);
+                        if (absSample > peak)
+                        {
+                            peak = absSample;
+                        }
+                    }
+                }
+            }
+            
+            // Use double precision for RMS calculation
+            double rms = Math.Sqrt(sum / sampleCount);
+            
+            // Normalize to 0.0-1.0 range
+            double peakNormalized = (double)peak / 32767.0;
+            double rmsNormalized = rms / 32767.0;
+            
+            // Use a blend of RMS and peak with moderate sensitivity
+            double blended = (rmsNormalized * 0.7 + peakNormalized * 0.3);
+            
+            // Apply moderate sensitivity boost
+            double result = blended * 50.0;
+            
+            // Clamp to 0.0-1.0 range
+            return (float)Math.Min(1.0, Math.Max(0.0, result));
         }
 
         private static void WriteWavHeader(

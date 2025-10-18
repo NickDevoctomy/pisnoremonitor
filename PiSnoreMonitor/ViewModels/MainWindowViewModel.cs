@@ -5,6 +5,7 @@ using PiSnoreMonitor.Services;
 using Avalonia.Controls;
 using System;
 using System.IO;
+using System.Diagnostics;
 
 namespace PiSnoreMonitor.ViewModels
 {
@@ -37,6 +38,9 @@ namespace PiSnoreMonitor.ViewModels
         [ObservableProperty]
         private string errorMessageText = string.Empty;
 
+        [ObservableProperty]
+        private double amplitude = 0d;
+
         private DateTime _startedRecordingAt;
         private int _updateCounter = 0;
 
@@ -54,6 +58,7 @@ namespace PiSnoreMonitor.ViewModels
             _updateCounter++;
             if(_updateCounter % 10 ==0)
             {
+                Amplitude = e.Amplitude * 100;
                 UpdateElapsedRecordingTime();
             }
         }
@@ -147,6 +152,7 @@ namespace PiSnoreMonitor.ViewModels
 
                 UpdateStartedRecordingTime();
                 UpdateElapsedRecordingTime();
+                Amplitude = 0;
             }
         }
 
