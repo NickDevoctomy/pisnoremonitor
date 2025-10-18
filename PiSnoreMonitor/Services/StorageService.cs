@@ -21,9 +21,9 @@ namespace PiSnoreMonitor.Services
             }
 
             return DriveInfo.GetDrives()
-                .Where(static drive => drive.Name.StartsWith("/media/pi", StringComparison.Ordinal))
-                    .Select(d => d.RootDirectory.FullName)
-                    .ToList();
+                .Where(d => d.Name.StartsWith("/media/pi", StringComparison.Ordinal))
+                .Select(d => d.RootDirectory.FullName)
+                .ToList();
         }
     }
 }
