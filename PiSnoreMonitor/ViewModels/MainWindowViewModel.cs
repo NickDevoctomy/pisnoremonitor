@@ -24,10 +24,10 @@ namespace PiSnoreMonitor.ViewModels
         private GridLength statusRowGridHeight = new(0);
 
         [ObservableProperty]
-        private string startedRecordingAtText = string.Empty;
+        private string startedRecordingAtText = "-";
 
         [ObservableProperty]
-        private string elapsedRecordingTimeText = string.Empty;
+        private string elapsedRecordingTimeText = "-";
 
         private DateTime _startedRecordingAt;
 
@@ -40,6 +40,19 @@ namespace PiSnoreMonitor.ViewModels
         private void WavRecorder_WavRecorderRecording(object? sender, WavRecorderRecordingEventArgs e)
         {
             UpdateElapsedRecordingTime();
+        }
+
+        private void UpdateStartedRecordingTime()
+        {
+            if (IsRecording)
+            {
+                StartedRecordingAtText = $"{_startedRecordingAt:dd-MM-yyyy HH:mm:ss}";
+            }
+            else
+            {
+                ElapsedRecordingTimeText = "-";
+            }
+            
         }
 
         private void UpdateElapsedRecordingTime()
@@ -67,7 +80,7 @@ namespace PiSnoreMonitor.ViewModels
                 StatusRowGridHeight = new GridLength(48);
 
                 _startedRecordingAt = DateTime.Now;
-                StartedRecordingAtText = $"{_startedRecordingAt:dd-MM-yyyy HH:mm:ss}";
+                UpdateStartedRecordingTime();
                 UpdateElapsedRecordingTime();
             }
             else
@@ -77,6 +90,9 @@ namespace PiSnoreMonitor.ViewModels
                 ButtonBackground = Brushes.LightGray;
                 ButtonText = "Start Recording";
                 StatusRowGridHeight = new GridLength(0);
+
+                UpdateStartedRecordingTime();
+                UpdateElapsedRecordingTime();
             }
         }
     }
