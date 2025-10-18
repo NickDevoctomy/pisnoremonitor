@@ -21,7 +21,7 @@ namespace PiSnoreMonitor.Services
             }
 
             return DriveInfo.GetDrives()
-                .Where(d => d.Name.StartsWith("/media/pi", StringComparison.Ordinal))
+                .Where(d => d.Name.StartsWith($"/media/{Environment.UserName}", StringComparison.Ordinal))
                 .Select(d => d.RootDirectory.FullName)
                 .ToList();
         }
