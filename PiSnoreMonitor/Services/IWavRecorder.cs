@@ -4,6 +4,7 @@ namespace PiSnoreMonitor.Services
 {
     public interface IWavRecorder : IDisposable
     {
+        public event EventHandler<WavRecorderRecordingEventArgs>? WavRecorderRecording;
         public void StartRecording(string filePath);
         public void StopRecording();
     }

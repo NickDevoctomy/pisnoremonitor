@@ -9,18 +9,14 @@ using System.Threading.Tasks;
 
 namespace PiSnoreMonitor.Services
 {
-    // Small wrapper so we can rent from ArrayPool and return later.
-    public sealed class PooledBlock
-    {
-        public byte[] Buffer = Array.Empty<byte>();
-        public int Count;
-    }
 
     public class WavRecorder(
         int sampleRate,
         int channels,
         uint framesPerBuffer) : IWavRecorder
     {
+        public event EventHandler<WavRecorderRecordingEventArgs>? WavRecorderRecording;
+
         private PortAudioSharp.Stream? paStream;
         private FileStream? fs;
         private BinaryWriter? bw;
@@ -169,6 +165,8 @@ namespace PiSnoreMonitor.Services
 
             // Try to enqueue. If channel is full, drop oldest (per config) and still enqueue current.
             channel.Writer.TryWrite(block);
+
+            WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs());
 
             return StreamCallbackResult.Continue;
         }

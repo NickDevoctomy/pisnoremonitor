@@ -8,9 +8,45 @@
         x:DataType="vm:MainWindowViewModel"
         Title="PiSnoreMonitor">
 	<Grid>
+        <Grid.ColumnDefinitions>
+		    <ColumnDefinition Width="16" />
+		    <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+			<RowDefinition Height="*" />
+			<RowDefinition Height="{Binding StatusRowGridHeight}" />
+        </Grid.RowDefinitions>
+
+        <ProgressBar HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch"
+                     Margin="8"/>
 		<Button HorizontalAlignment="Center" 
                 Background="{Binding ButtonBackground}"
                 Content="{Binding ButtonText}"
-                Command="{Binding ToggleRecordingCommand}" />
+                Command="{Binding ToggleRecordingCommand}"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                Grid.Column="1"
+                Width="150"
+                Height="100"/>
+
+        <Panel Grid.Row="1" 
+               Grid.ColumnSpan="2"
+               Background="DarkGray"
+               Margin="8">
+            <Grid VerticalAlignment="Center">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="75" />
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="75" />
+					<ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" FontWeight="Bold">Started : </Label>
+                <Label Grid.Column="1" Content="{Binding StartedRecordingAtText}" />
+                <Label Grid.Column="2" FontWeight="Bold">Elapsed : </Label>
+                <Label Grid.Column="3" HorizontalContentAlignment="Right" Content="{Binding ElapsedRecordingTimeText}" />
+            </Grid>
+        </Panel>
 	</Grid>
 </Window>
