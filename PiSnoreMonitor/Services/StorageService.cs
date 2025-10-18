@@ -18,10 +18,19 @@ namespace PiSnoreMonitor.Services
                     .ToList();
             }
 
-            // Unix-like: enumerate mounted devices and consult /sys for "removable"
-            var readyDrivesByMount = DriveInfo.GetDrives()
-                .Where(d => d.IsReady)
-                .ToDictionary(d => d.RootDirectory.FullName.TrimEnd('/'));
+            static string NormalizeMount(string path)
+            {
+                if (string.IsNullOrEmpty(path)) return path;
+                return path.Length > 1 && path.EndsWith("/")
+                    ? path.TrimEnd('/')
+                    : path;
+            }
+
+            var readyMounts = new HashSet<string>(
+                DriveInfo.GetDrives()
+                    .Where(d => d.IsReady)
+                    .Select(d => NormalizeMount(d.RootDirectory.FullName))
+            );
 
             var results = new List<string>();
 
@@ -30,22 +39,22 @@ namespace PiSnoreMonitor.Services
                 var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length < 2) continue;
 
-                var device = parts[0];           // e.g. /dev/sda1
-                var mountPoint = parts[1];       // e.g. /media/pi/MYUSB
+                var device = parts[0];
+                var mountPoint = NormalizeMount(parts[1]);
 
-                if (!device.StartsWith("/dev/")) continue; // skip pseudo fs (tmpfs, proc, etc.)
-                if (!readyDrivesByMount.ContainsKey(mountPoint)) continue;
+                if (!device.StartsWith("/dev/")) continue;
+                if (!readyMounts.Contains(mountPoint)) continue;
 
-                var devName = Path.GetFileName(device); // sda1, nvme0n1p1, etc.
-                                                        // Try the partition first, then its parent block device
+                var devName = Path.GetFileName(device);
+
                 var candidates = new[]
                 {
                     $"/sys/class/block/{devName}/removable",
-                    $"/sys/class/block/{Regex.Replace(devName, @"\dp\d+$", "")}/removable", // nvme0n1p1 -> nvme0n1
-                    $"/sys/class/block/{Regex.Replace(devName, @"\d+$", "")}/removable"     // sda1 -> sda
-                };
+                    $"/sys/class/block/{Regex.Replace(devName, @"\\dp\\d+$", "")}/removable",
+                    $"/sys/class/block/{Regex.Replace(devName, @"\\d+$", "")}/removable"
+                }.Distinct();
 
-                foreach (var path in candidates.Distinct())
+                foreach (var path in candidates)
                 {
                     if (File.Exists(path) && File.ReadAllText(path).Trim() == "1")
                     {
