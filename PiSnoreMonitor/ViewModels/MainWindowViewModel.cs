@@ -4,11 +4,13 @@ using Avalonia.Media;
 using PiSnoreMonitor.Services;
 using Avalonia.Controls;
 using System;
+using System.IO;
 
 namespace PiSnoreMonitor.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
+        private readonly IStorageService _storageService;
         private readonly IWavRecorder _wavRecorder;
 
         [ObservableProperty]
@@ -29,17 +31,31 @@ namespace PiSnoreMonitor.ViewModels
         [ObservableProperty]
         private string elapsedRecordingTimeText = "-";
 
-        private DateTime _startedRecordingAt;
+        [ObservableProperty]
+        private bool isErrorVisible = false;
 
-        public MainWindowViewModel(IWavRecorder wavRecorder)
+        [ObservableProperty]
+        private string errorMessageText = string.Empty;
+
+        private DateTime _startedRecordingAt;
+        private int _updateCounter = 0;
+
+        public MainWindowViewModel(
+            IStorageService storageService,
+            IWavRecorder wavRecorder)
         {
+            _storageService = storageService;
             _wavRecorder = wavRecorder;
             _wavRecorder.WavRecorderRecording += WavRecorder_WavRecorderRecording;
         }
 
         private void WavRecorder_WavRecorderRecording(object? sender, WavRecorderRecordingEventArgs e)
         {
-            UpdateElapsedRecordingTime();
+            _updateCounter++;
+            if(_updateCounter % 10 ==0)
+            {
+                UpdateElapsedRecordingTime();
+            }
         }
 
         private void UpdateStartedRecordingTime()
@@ -60,7 +76,7 @@ namespace PiSnoreMonitor.ViewModels
             if (IsRecording)
             {
                 var elapsed = DateTime.Now - _startedRecordingAt;
-                ElapsedRecordingTimeText = $"{elapsed}";
+                ElapsedRecordingTimeText = elapsed.ToString(@"hh\:mm\:ss");
             }
             else
             {
@@ -68,17 +84,55 @@ namespace PiSnoreMonitor.ViewModels
             }
         }
 
+        private string GetOutputFilePath()
+        {
+            var removableDrives = _storageService.GetRemovableStorageDrivePaths();
+            if (removableDrives.Count > 0)
+            {
+                var prefix = "recording";
+                var offset = 0;
+                var path = Path.Combine(removableDrives[0], $"{prefix}_{offset}.wav");
+                while(File.Exists(path))
+                {
+                    offset++;
+                    path = Path.Combine(removableDrives[0], $"{prefix}_{offset}.wav");
+                }
+                return path;
+            }
+            else
+            {
+                throw new InvalidOperationException("No removable storage drives found.");
+            }
+        }
+
+        private void DisplayErrorMessage(string message)
+        {
+            ErrorMessageText = message;
+            IsErrorVisible = true;
+        }
+
         [RelayCommand]
         private void ToggleRecording()
         {
             if (!IsRecording)
             {
-                _wavRecorder.StartRecording("c:/temp/test.wav");
+                var outputFilePath = string.Empty;
+                try
+                {
+                    outputFilePath = GetOutputFilePath();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    DisplayErrorMessage(ex.Message);
+                    return;
+                }
+                _wavRecorder.StartRecording(outputFilePath);
                 IsRecording = true;
                 ButtonBackground = Brushes.Red;
                 ButtonText = "Stop Recording";
                 StatusRowGridHeight = new GridLength(48);
 
+                _updateCounter = 0;
                 _startedRecordingAt = DateTime.Now;
                 UpdateStartedRecordingTime();
                 UpdateElapsedRecordingTime();
@@ -94,6 +148,13 @@ namespace PiSnoreMonitor.ViewModels
                 UpdateStartedRecordingTime();
                 UpdateElapsedRecordingTime();
             }
+        }
+
+        [RelayCommand]
+        private void DismissError()
+        {
+            IsErrorVisible = false;
+            ErrorMessageText = string.Empty;
         }
     }
 }

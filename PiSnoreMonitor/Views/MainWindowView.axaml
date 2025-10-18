@@ -48,5 +48,16 @@
                 <Label Grid.Column="3" HorizontalContentAlignment="Right" Content="{Binding ElapsedRecordingTimeText}" />
             </Grid>
         </Panel>
+
+        <Panel Background="Red"
+               Grid.ColumnSpan="2"
+               Grid.RowSpan="2"
+               IsVisible="{Binding IsErrorVisible}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+				<Label Content="{Binding ErrorMessageText}"></Label>
+                <Button Content="OK" HorizontalAlignment="Center" Background="White" Foreground="DarkGray" Command="{Binding DismissErrorCommand}"></Button>
+            </StackPanel>
+        </Panel>
 	</Grid>
 </Window>
