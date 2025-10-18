@@ -6,7 +6,8 @@
         mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="320"
         x:Class="PiSnoreMonitor.Views.MainWindowView"
         x:DataType="vm:MainWindowViewModel"
-        Title="PiSnoreMonitor">
+        Title="PiSnoreMonitor"
+        WindowStartupLocation="CenterScreen">
 	<Grid>
         <Grid.ColumnDefinitions>
 		    <ColumnDefinition Width="48" />
