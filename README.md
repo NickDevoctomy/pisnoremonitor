@@ -96,4 +96,4 @@ Terminal=true
 Categories=Development;
 ```
 
-An icon should now appear on the desktop, open it and choose to launch in the terminal.
+An icon should now appear on the desktop, open it and choose to execute in the terminal.
