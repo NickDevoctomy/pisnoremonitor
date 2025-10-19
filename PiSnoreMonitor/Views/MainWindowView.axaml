@@ -1,42 +1,76 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:PiSnoreMonitor.ViewModels"
+        xmlns:controls="using:PiSnoreMonitor.Controls"
         mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="320"
         x:Class="PiSnoreMonitor.Views.MainWindowView"
         x:DataType="vm:MainWindowViewModel"
         Title="PiSnoreMonitor"
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized">
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
 	<Grid>
         <Grid.ColumnDefinitions>
 		    <ColumnDefinition Width="48" />
 		    <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+			<RowDefinition Height="{Binding TitleRowGridHeight}" />
 			<RowDefinition Height="*" />
 			<RowDefinition Height="{Binding StatusRowGridHeight}" />
         </Grid.RowDefinitions>
 
-        <ProgressBar HorizontalAlignment="Stretch"
+        <controls:LevelMeter HorizontalAlignment="Stretch"
                      VerticalAlignment="Stretch"
                      Margin="8"
                      Minimum="0"
                      Maximum="100"
-                     Orientation="Vertical"
-                     Value="{Binding Amplitude}"/>
+                     LevelMarkerThickness="4"
+                     Value="{Binding Amplitude}"
+                     Grid.Row="1">
+			<controls:LevelMeter.TrackBrush>
+				<LinearGradientBrush StartPoint="0,0" EndPoint="0%,100%">
+                    <GradientStop Color="Red" Offset="0.0"/>
+                    <GradientStop Color="Orange" Offset="0.5"/>
+                    <GradientStop Color="Green" Offset="1.0"/>
+                </LinearGradientBrush>
+            </controls:LevelMeter.TrackBrush>
+        </controls:LevelMeter>
+
+        <Panel Grid.ColumnSpan="2"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch">
+			<Grid Grid.Margin="8,0,8,0">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Label Content="{Binding CurrentDateTimeText}" VerticalAlignment="Center" />
+
+                <Label Content="{Binding MemoryUsageText}" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <Label Content="{Binding CpuUsageText}" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
+        </Panel>
+
 		<Button HorizontalAlignment="Center" 
                 Background="{Binding ButtonBackground}"
                 Content="{Binding ButtonText}"
                 Command="{Binding ToggleRecordingCommand}"
                 HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center"
+                Grid.Row="1"
                 Grid.Column="1"
                 Width="150"
                 Height="100"/>
 
-        <Panel Grid.Row="1" 
+        <Panel Grid.Row="2" 
                Grid.ColumnSpan="2"
                Background="DarkGray"
                Margin="8">
@@ -57,7 +91,7 @@
 
         <Panel Background="Red"
                Grid.ColumnSpan="2"
-               Grid.RowSpan="2"
+               Grid.RowSpan="3"
                IsVisible="{Binding IsErrorVisible}">
             <StackPanel HorizontalAlignment="Center"
                         VerticalAlignment="Center">

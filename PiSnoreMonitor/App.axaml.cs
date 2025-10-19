@@ -35,6 +35,9 @@ namespace PiSnoreMonitor
         private void ConfigureServices(IServiceCollection services)
         {
             // Register services
+            services.AddSingleton<ICpuUsageSampler, HardwareInfoCpuUsageSampler>();
+            services.AddSingleton<IMemoryUsageSampler, HardwareInfoMemoryUsageSampler>();
+            services.AddSingleton<ISystemMonitor, SystemMonitor>();
             services.AddSingleton<IStorageService, StorageService>();
             services.AddSingleton<IWavRecorder>(provider => new WavRecorder(44100, 1, 1024));
             

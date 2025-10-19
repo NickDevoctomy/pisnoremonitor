@@ -1,18 +1,18 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Avalonia.Media;
 using PiSnoreMonitor.Services;
 using Avalonia.Controls;
 using System;
 using System.IO;
-using System.Diagnostics;
 
 namespace PiSnoreMonitor.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
-        private readonly IStorageService _storageService;
-        private readonly IWavRecorder _wavRecorder;
+        private readonly ISystemMonitor? _systemMonitor;
+        private readonly IStorageService? _storageService;
+        private readonly IWavRecorder? _wavRecorder;
 
         [ObservableProperty]
         private bool isRecording = false;
@@ -21,16 +21,22 @@ namespace PiSnoreMonitor.ViewModels
         private IBrush buttonBackground = Brushes.LightGray;
 
         [ObservableProperty]
+        private string currentDateTimeText = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+
+        [ObservableProperty]
         private string buttonText = "Start Recording";
+
+        [ObservableProperty]
+        private GridLength titleRowGridHeight = new(32);
 
         [ObservableProperty]
         private GridLength statusRowGridHeight = new(0);
 
         [ObservableProperty]
-        private string startedRecordingAtText = "-";
+        private string startedRecordingAtText = string.Empty;
 
         [ObservableProperty]
-        private string elapsedRecordingTimeText = "-";
+        private string elapsedRecordingTimeText = string.Empty;
 
         [ObservableProperty]
         private bool isErrorVisible = false;
@@ -41,16 +47,40 @@ namespace PiSnoreMonitor.ViewModels
         [ObservableProperty]
         private double amplitude = 0d;
 
+        [ObservableProperty]
+        private string memoryUsageText = "🐏 ?/?";
+
+        [ObservableProperty]
+        private string cpuUsageText = "🖥️ ?%";
+
         private DateTime _startedRecordingAt;
         private int _updateCounter = 0;
 
+        public MainWindowViewModel()
+        {
+        }
+
         public MainWindowViewModel(
+            ISystemMonitor systemMonitor,
             IStorageService storageService,
             IWavRecorder wavRecorder)
         {
+            _systemMonitor = systemMonitor;
             _storageService = storageService;
             _wavRecorder = wavRecorder;
+
+            _systemMonitor.OnSystemStatusUpdate += _systemMonitor_OnSystemStatusUpdate;
             _wavRecorder.WavRecorderRecording += WavRecorder_WavRecorderRecording;
+
+            _systemMonitor.StartMonitoring();
+        }
+
+        private void _systemMonitor_OnSystemStatusUpdate(object? sender, SystemMonitorStatusEventArgs e)
+        {
+            var usedGB = Math.Round((e.TotalMemoryBytes - e.FreeMemoryBytes) / 1073741824.0, 2);
+            var totalGB = Math.Round(e.TotalMemoryBytes / 1073741824.0, 2);
+            MemoryUsageText = $"🐏 {usedGB}/{totalGB} GB";
+            CpuUsageText = $"🖥️ {Math.Round(e.CpuUsagePercentage,2)}%";
         }
 
         private void WavRecorder_WavRecorderRecording(object? sender, WavRecorderRecordingEventArgs e)
