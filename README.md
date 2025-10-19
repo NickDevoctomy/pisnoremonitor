@@ -26,11 +26,11 @@ What I'm trying to achieve is a self contained unit for monitoring your snoring 
 
 ### Requirements
 
-We will start by assuming you are booting into a vanilla installation of Raspberry PI OS without .net 8.
+We will start by assuming you are booting into a vanilla installation of Raspberry PI OS without dotnet 8.
 
-#### Install .net 8
+#### Install dotnet 8
 
-1. Install .net 8
+1. Install dotnet 8
 
 ```bash
 curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version latest --verbose
@@ -59,7 +59,7 @@ cd PiSnoreMonitor
 dotnet run
 ```
 
-> Please note, the application will not be able to record any audio until libportaudio2 is installed, as per the instructions below. This is caused by PortAudiSharp2 not including ARM64 binaries. This will be fixed in due coarse.
+> Please note, the application will not be able to record any audio until libportaudio2 is installed, as per the instructions below. This is caused by PortAudioSharp2 not including ARM64 binaries. This will be fixed in due coarse.
 
 #### Install libportaudio2
 
