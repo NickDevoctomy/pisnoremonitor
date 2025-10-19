@@ -9,7 +9,8 @@
         x:DataType="vm:MainWindowViewModel"
         Title="PiSnoreMonitor"
         WindowStartupLocation="CenterScreen"
-        WindowState="Maximized">
+        WindowState="FullScreen"
+        Topmost="True">
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
@@ -50,12 +51,14 @@
 					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="32" />
                 </Grid.ColumnDefinitions>
 
                 <Label Content="{Binding CurrentDateTimeText}" VerticalAlignment="Center" />
-
                 <Label Content="{Binding MemoryUsageText}" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <Label Content="{Binding CpuUsageText}" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <Label Content="{Binding CpuUsageText}" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" />
+            
+                <Button Content="X" Grid.Column="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding CloseCommand}"></Button>
             </Grid>
         </Panel>
 

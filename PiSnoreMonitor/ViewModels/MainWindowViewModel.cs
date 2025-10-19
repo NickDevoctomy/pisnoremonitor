@@ -5,6 +5,7 @@ using PiSnoreMonitor.Services;
 using Avalonia.Controls;
 using System;
 using System.IO;
+using Avalonia;
 
 namespace PiSnoreMonitor.ViewModels
 {
@@ -144,6 +145,12 @@ namespace PiSnoreMonitor.ViewModels
         {
             ErrorMessageText = message;
             IsErrorVisible = true;
+        }
+
+        [RelayCommand]
+        private void Close()
+        {
+            Environment.Exit(0);
         }
 
         [RelayCommand]
