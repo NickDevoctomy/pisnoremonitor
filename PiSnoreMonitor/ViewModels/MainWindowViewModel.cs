@@ -122,7 +122,7 @@ namespace PiSnoreMonitor.ViewModels
 
         private string GetOutputFilePath()
         {
-            var removableDrives = _storageService.GetRemovableStorageDrivePaths();
+            var removableDrives = _storageService!.GetRemovableStorageDrivePaths();
             if (removableDrives.Count > 0)
             {
                 var prefix = "recording";
@@ -168,7 +168,7 @@ namespace PiSnoreMonitor.ViewModels
                     DisplayErrorMessage(ex.Message);
                     return;
                 }
-                _wavRecorder.StartRecording(outputFilePath);
+                _wavRecorder!.StartRecording(outputFilePath);
                 IsRecording = true;
                 ButtonBackground = Brushes.Red;
                 ButtonText = "Stop Recording";
@@ -181,7 +181,7 @@ namespace PiSnoreMonitor.ViewModels
             }
             else
             {
-                _wavRecorder.StopRecording();
+                _wavRecorder!.StopRecording();
                 IsRecording = false;
                 ButtonBackground = Brushes.LightGray;
                 ButtonText = "Start Recording";
