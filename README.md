@@ -97,3 +97,18 @@ Categories=Development;
 ```
 
 An icon should now appear on the desktop, open it and choose to execute in the terminal.
+
+## Additional Information
+
+#### Sway Screeen Blanking
+
+The following should blank the screen after 60 seconds of inactivity.
+
+```bash
+mkdir -p ~/.config/labwc
+cat > ~/.config/labwc/autostart <<'EOF'
+/usr/bin/swayidle -w -C /dev/null \
+  timeout 60 'wlopm --off "*"' \
+  resume  'wlopm --on "*"' &
+EOF
+```
