@@ -1,2 +1,75 @@
 # pisnoremonitor
+
 Snoring monitor created for Raspberry Pi.
+
+This is a very early prototype. What I plan on implementing is the following,
+
+1. .net 8 Avalonia app to run in Kiosk mode on the PI
+2. Ability to record nights of audio and input from other sensors (TBD)
+3. Ability to inject tags into the recording during a session to mark that something happened, for personal reference primarily.
+4. Snoring analysis of the session
+
+In order to perform real-time snoring analysis I want to build a model using ML. I plan on running the model on the device to allow it to analyse the session in real-time. No idea how this is going to work out as I haven't done any ML before! So bear with me.
+
+**Ultimate Goal**
+
+What I'm trying to achieve is a self contained unit for monitoring your snoring with the intention of improving your quality of life / sleep. Also to remove the requirement for needing a subscription based service.
+
+## Recommended Hardware
+
+* Raspberry PI 4B
+* [Elecrow Touch Screen](https://www.amazon.co.uk/dp/B081QFJHG7?ref=ppx_yo2ov_dt_b_fed_asin_title)
+* [Mini USB Micrphone](https://www.amazon.co.uk/dp/B0DH1TY54Y?ref=ppx_yo2ov_dt_b_fed_asin_title)
+* USB Storage Device (You'll want something quite sizeable so that you can record without worrying about space.)
+
+## Installation Instructions
+
+### Requirements
+
+We will start by assuming you are booting into a vanilla installation of Raspberry PI OS without .net 8.
+
+#### Install .net 8
+
+1. Install .net 8
+
+```bash
+curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version latest --verbose
+```
+
+2. Update environment variables
+
+```bash
+echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.bashrc
+echo 'export PATH=$PATH:$HOME/.dotnet' >> ~/.bashrc
+source ~/.bashrc
+```
+
+#### Clone, Build and Run from Source
+
+Open a new terminal and run the following,
+
+```bash
+mkdir ~/src
+cd ~/src
+git clone https://github.com/NickDevoctomy/pisnoremonitor
+cd pisnoremonitor
+dotnet restore
+dotnet build
+cd PiSnoreMonitor
+dotnet run
+```
+
+> Please note, the application will not be able to record any audio until libportaudio2 is installed, as per the instructions below. This is caused by PortAudiSharp2 not including ARM64 binaries. This will be fixed in due coarse.
+
+#### Install libportaudio2
+
+Open a new terminal and run the following,
+
+```bash
+sudo apt update
+sudo apt install portaudio19-dev
+~/src/pisnoremonitor/PiSnoreMonitor/bin/Debug/net8.0/runtimes/linux-arm64/native
+cp /usr/lib/aarch64-linux-gnu/libportaudio.so .
+```
+
+> The application should now run and be able to record.
