@@ -73,3 +73,27 @@ cp /usr/lib/aarch64-linux-gnu/libportaudio.so .
 ```
 
 > The application should now run and be able to record.
+
+#### Simple Desktop Icon to test with
+
+Open a new terminal and run the following,
+
+```bash
+cd ~/Desktop/
+nano PiSnoreMonitor.desktop  
+```
+
+paste the following, and then use Ctrl+O followed by return, then Ctrl+X.
+
+```
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=PiSnoreMonitor
+Comment=Run prototype of PiSnoreMonitor
+Exec=bash -lc 'PATH="$HOME/.dotnet:$PATH"; cd ~/src/pisnoremonitor/PiSnoreMonitor; dotnet run; echo; read -n1 -s -r'
+Terminal=true
+Categories=Development;
+```
+
+An icon should now appear on the desktop, open it and choose to launch in the terminal.
