@@ -86,8 +86,9 @@ namespace PiSnoreMonitor.ViewModels
 
         private void WavRecorder_WavRecorderRecording(object? sender, WavRecorderRecordingEventArgs e)
         {
+            UpdateElapsedRecordingTime();
             _updateCounter++;
-            if(_updateCounter % 10 ==0)
+            if (_updateCounter % 10 == 0)
             {
                 Amplitude = e.Amplitude * 100;
                 UpdateElapsedRecordingTime();

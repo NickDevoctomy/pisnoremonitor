@@ -1,9 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36511.14 d17.14
+VisualStudioVersion = 17.14.36511.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiSnoreMonitor", "PiSnoreMonitor\PiSnoreMonitor.csproj", "{EFB83040-392B-4821-AC85-F3AD1B62DEA8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiSnoreMonitor.Core", "PiSnoreMonitor.Core\PiSnoreMonitor.Core.csproj", "{C0FBE254-0AF8-4FBB-888A-572BD86B7825}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiSnoreMonitor.Core.UnitTests", "PiSnoreMonitor.Core.UnitTests\PiSnoreMonitor.Core.UnitTests.csproj", "{52844659-9C2F-45D5-B37E-3989A44B9B49}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{4A60B872-BD73-44FD-8AD1-3D37F4EB90A4}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +27,20 @@ Global
 		{EFB83040-392B-4821-AC85-F3AD1B62DEA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFB83040-392B-4821-AC85-F3AD1B62DEA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFB83040-392B-4821-AC85-F3AD1B62DEA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0FBE254-0AF8-4FBB-888A-572BD86B7825}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0FBE254-0AF8-4FBB-888A-572BD86B7825}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0FBE254-0AF8-4FBB-888A-572BD86B7825}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0FBE254-0AF8-4FBB-888A-572BD86B7825}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52844659-9C2F-45D5-B37E-3989A44B9B49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52844659-9C2F-45D5-B37E-3989A44B9B49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52844659-9C2F-45D5-B37E-3989A44B9B49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52844659-9C2F-45D5-B37E-3989A44B9B49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{52844659-9C2F-45D5-B37E-3989A44B9B49} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F50B94A0-9974-4A54-8A6D-DADEA7EAB0D8}

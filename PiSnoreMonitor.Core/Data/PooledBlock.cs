@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PiSnoreMonitor.Services
+namespace PiSnoreMonitor.Data
 {
     public class PooledBlock
     {

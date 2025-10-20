@@ -1,12 +1,12 @@
-﻿using PortAudioSharp;
-using SkiaSharp;
+﻿using PiSnoreMonitor.Core.Services.Effects;
+using PiSnoreMonitor.Data;
+using PortAudioSharp;
 using System;
 using System.Buffers;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PiSnoreMonitor.Services
 {
@@ -14,7 +14,8 @@ namespace PiSnoreMonitor.Services
     public class WavRecorder(
         int sampleRate,
         int channels,
-        uint framesPerBuffer) : IWavRecorder
+        uint framesPerBuffer,
+        IEffectsBus? effectsBus) : IWavRecorder
     {
         public event EventHandler<WavRecorderRecordingEventArgs>? WavRecorderRecording;
 
@@ -167,12 +168,6 @@ namespace PiSnoreMonitor.Services
             // Try to enqueue. If channel is full, drop oldest (per config) and still enqueue current.
             channel.Writer.TryWrite(block);
 
-            float amplitude = CalculateAmplitude(block);
-            WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs
-            {
-                Amplitude = amplitude
-            });
-
             return StreamCallbackResult.Continue;
         }
 
@@ -184,12 +179,21 @@ namespace PiSnoreMonitor.Services
                 {
                     while (channel.Reader.TryRead(out var block))
                     {
+                        var processedBlock = effectsBus?.Process(block, block.Count) ?? block;
+
+                        float amplitude = CalculateAmplitude(processedBlock, 0);
+                        System.Diagnostics.Debug.WriteLine($"Firing event with amplitude: {amplitude:F3}");
+                        WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs
+                        {
+                            Amplitude = amplitude
+                        });
+
                         try
                         {
                             if (bw == null || fs == null) return;
 
-                            bw.Write(block.Buffer, 0, block.Count);
-                            dataBytes += block.Count;
+                            bw.Write(processedBlock.Buffer, 0, processedBlock.Count);
+                            dataBytes += processedBlock.Count;
 
                             // Periodically patch header & fsync to minimize corruption on power loss
                             var now = DateTime.UtcNow;
@@ -203,7 +207,7 @@ namespace PiSnoreMonitor.Services
                         }
                         finally
                         {
-                            ArrayPool<byte>.Shared.Return(block.Buffer);
+                            ArrayPool<byte>.Shared.Return(processedBlock.Buffer);
                         }
                     }
                 }
@@ -214,20 +218,17 @@ namespace PiSnoreMonitor.Services
             }
         }
 
-        private float CalculateAmplitude(PooledBlock block)
+        private float CalculateAmplitude(PooledBlock block, double maximumDbLevel)
         {
             if (block.Buffer == null || block.Count == 0)
             {
                 return 0.0f;
             }
             
-            // Convert byte count to sample count (16-bit samples = 2 bytes each)
             int sampleCount = block.Count / 2;
             if (sampleCount == 0) return 0.0f;
             
-            // Calculate both RMS and peak amplitude for better sensitivity
             double sum = 0;
-            short peak = 0;
             
             unsafe
             {
@@ -239,32 +240,21 @@ namespace PiSnoreMonitor.Services
                     {
                         short sample = samples[i];
                         sum += (double)sample * sample;
-                        
-                        // Track peak amplitude
-                        short absSample = (short)Math.Abs(sample);
-                        if (absSample > peak)
-                        {
-                            peak = absSample;
-                        }
                     }
                 }
             }
             
-            // Use double precision for RMS calculation
             double rms = Math.Sqrt(sum / sampleCount);
-            
-            // Normalize to 0.0-1.0 range
-            double peakNormalized = (double)peak / 32767.0;
             double rmsNormalized = rms / 32767.0;
             
-            // Use a blend of RMS and peak with moderate sensitivity
-            double blended = (rmsNormalized * 0.7 + peakNormalized * 0.3);
+            // Convert to dB: 20 * log10(rmsNormalized)
+            // For very small values, clamp to prevent log(0)
+            if (rmsNormalized < 1e-10) return 0.0f;
             
-            // Apply moderate sensitivity boost
-            double result = blended * 50.0;
-            
-            // Clamp to 0.0-1.0 range
-            return (float)Math.Min(1.0, Math.Max(0.0, result));
+            double dB = 20.0 * Math.Log10(rmsNormalized);
+            const double minDb = -60.0;        
+            double normalizedDb = Math.Max(0.0, (dB - minDb) / (maximumDbLevel - minDb));      
+            return (float)Math.Min(1.0, Math.Max(0.0, normalizedDb));
         }
 
         private static void WriteWavHeader(
