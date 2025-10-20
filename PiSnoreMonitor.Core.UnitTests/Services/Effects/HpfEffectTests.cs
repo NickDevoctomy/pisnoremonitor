@@ -52,7 +52,8 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
         {
             // Arrange
             var effect = new HpfEffect();
-            effect.SetSampleRate(44100);
+            var sampleRateParam = new FloatParameter("SampleRate", 44100);
+            effect.SetParameters(sampleRateParam);
 
             // Create 1 second of silence (44100 samples * 2 bytes)
             var input = new byte[44100 * 2];
@@ -90,7 +91,8 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
         {
             // Arrange
             var effect = new HpfEffect();
-            effect.SetSampleRate(44100);
+            var sampleRateParam = new FloatParameter("SampleRate", 44100);
+            effect.SetParameters(sampleRateParam);
 
             // Set cutoff to 1000 Hz
             var cutoffParam = new FloatParameter("CutoffFrequency", 1000.0f);
@@ -162,7 +164,8 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
         {
             // Arrange
             var effect = new HpfEffect();
-            effect.SetSampleRate(44100);
+            var sampleRateParam = new FloatParameter("SampleRate", 44100);
+            effect.SetParameters(sampleRateParam);
 
             // Create a signal with maximum amplitude
             var sampleCount = 1000;
@@ -213,10 +216,12 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             var input2 = CreateTestSignal(1000, 48000);
 
             // Act
-            effect.SetSampleRate(44100);
+            var sampleRateParam = new FloatParameter("SampleRate", 44100);
+            effect.SetParameters(sampleRateParam);
             var result1 = effect.Process(input1, input1.Length);
 
-            effect.SetSampleRate(48000);
+            var sampleRateParam2 = new FloatParameter("SampleRate", 48000);
+            effect.SetParameters(sampleRateParam2);
             var result2 = effect.Process(input2, input2.Length);
 
             // Assert - Different sample rates should produce different filtering behavior

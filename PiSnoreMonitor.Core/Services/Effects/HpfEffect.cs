@@ -1,3 +1,4 @@
+using PiSnoreMonitor.Core.Services.Effects.Parameters;
 using PiSnoreMonitor.Services.Effects.Parameters;
 
 namespace PiSnoreMonitor.Core.Services.Effects
@@ -5,19 +6,17 @@ namespace PiSnoreMonitor.Core.Services.Effects
     public class HpfEffect : IEffect
     {
         private readonly FloatParameter cutoffFrequencyParameter;
+        private readonly IntParameter sampleRate;
         
-        // Biquad filter state (more stable than simple RC filter)
         private float x1 = 0.0f, x2 = 0.0f; // Previous input samples
         private float y1 = 0.0f, y2 = 0.0f; // Previous output samples
-        
-        // Biquad coefficients
-        private float b0, b1, b2, a1, a2;
-        private int sampleRate = 44100; // Default, should be set properly
+        private float b0, b1, b2, a1, a2; // Biquad coefficients
 
         public HpfEffect()
         {
-            cutoffFrequencyParameter = new FloatParameter("CutoffFrequency", 100.0f); // 100 Hz default
-            
+            cutoffFrequencyParameter = new FloatParameter("CutoffFrequency", 100.0f);
+            sampleRate = new IntParameter("SampleRate", 44100);
+
             CalculateFilterCoefficient();
         }
 
@@ -29,6 +28,7 @@ namespace PiSnoreMonitor.Core.Services.Effects
         public void SetParameters(params IEffectsParameter[] parameters)
         {
             bool recalculateCoeff = false;
+            bool resetFilterState = false;
             
             foreach (var param in parameters)
             {
@@ -40,6 +40,11 @@ namespace PiSnoreMonitor.Core.Services.Effects
                             cutoffFrequencyParameter.Value = floatParam.Value;
                             recalculateCoeff = true;
                             break;
+                        case "SampleRate":
+                            sampleRate.Value = (int)floatParam.Value;
+                            recalculateCoeff = true;
+                            resetFilterState = true;
+                            break;
                     }
                 }
             }
@@ -47,6 +52,11 @@ namespace PiSnoreMonitor.Core.Services.Effects
             if (recalculateCoeff)
             {
                 CalculateFilterCoefficient();
+            }
+
+            if(resetFilterState)
+            {
+                ResetFilterState();
             }
         }
 
@@ -103,8 +113,9 @@ namespace PiSnoreMonitor.Core.Services.Effects
         private void CalculateFilterCoefficient()
         {
             // Biquad high-pass filter coefficient calculation
-            float cutoffFreq = cutoffFrequencyParameter.AsFloatParameter()!.Value;
-            
+            float cutoffFreq = cutoffFrequencyParameter.Value;
+            int sampleRate = this.sampleRate.Value;
+
             if (cutoffFreq <= 0 || sampleRate <= 0)
             {
                 // Bypass filter if invalid parameters
@@ -133,19 +144,6 @@ namespace PiSnoreMonitor.Core.Services.Effects
             
             Console.WriteLine($"HpfEffect: Cutoff={cutoffFreq}Hz, SampleRate={sampleRate}Hz");
             Console.WriteLine($"Coefficients: b0={b0:F6}, b1={b1:F6}, b2={b2:F6}, a1={a1:F6}, a2={a2:F6}");
-        }
-
-        private static float DecibelToLinear(float decibels)
-        {
-            return MathF.Pow(10.0f, decibels / 20.0f);
-        }
-
-        // Method to set sample rate (should be called when known)
-        public void SetSampleRate(int sampleRate)
-        {
-            this.sampleRate = sampleRate;
-            CalculateFilterCoefficient();
-            ResetFilterState();
         }
 
         // Reset filter state to prevent artifacts

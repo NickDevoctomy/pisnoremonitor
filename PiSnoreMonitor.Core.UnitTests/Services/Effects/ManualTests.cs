@@ -1,12 +1,7 @@
-﻿using PiSnoreMonitor.Core.Services.Effects;
-using PiSnoreMonitor.Data;
+﻿using PiSnoreMonitor.Core.Data;
+using PiSnoreMonitor.Core.Services.Effects;
 using PiSnoreMonitor.Services.Effects.Parameters;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
 {
@@ -24,12 +19,11 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             
             // Set up HpfEffect with specific parameters for testing
             var cutoffParam = new FloatParameter("CutoffFrequency", 12.0f);
-            var thresholdParam = new FloatParameter("AmplitudeThreshold", -45.0f);
-            sut.SetParameters(cutoffParam, thresholdParam);
-            
+            var sampleRateParam = new FloatParameter("SampleRate", 44100);
+            sut.SetParameters(cutoffParam, sampleRateParam);
+
             // Load WAV file
             var wavData = LoadWavFile(inputFileName);
-            sut.SetSampleRate(wavData.SampleRate);
             
             // Act
             // Process the audio data through the HpfEffect
@@ -64,7 +58,6 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             Console.WriteLine($"Input size: {inputFileInfo.Length} bytes");
             Console.WriteLine($"Output size: {outputFileInfo.Length} bytes");
             Console.WriteLine($"WAV Info: {wavData.SampleRate}Hz, {wavData.Channels} channels, {wavData.BitsPerSample} bits");
-            Console.WriteLine($"HPF Settings: Cutoff={cutoffParam.Value}Hz, Threshold={thresholdParam.Value}dB");
         }
 
         [Theory]
@@ -76,8 +69,8 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             // Arrange
             var hpfEffect = new HpfEffect();
             var cutoffParam = new FloatParameter("CutoffFrequency", 12.0f);
-            var thresholdParam = new FloatParameter("AmplitudeThreshold", -45.0f);
-            hpfEffect.SetParameters(cutoffParam, thresholdParam);
+            var sampleRateParam = new FloatParameter("SampleRate", 44100);
+            hpfEffect.SetParameters(cutoffParam, sampleRateParam);
 
             var gainEffect = new GainEffect();
             var gainParam = new FloatParameter("Gain", 20.0f);
@@ -89,7 +82,6 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
 
             // Load WAV file
             var wavData = LoadWavFile(inputFileName);
-            hpfEffect.SetSampleRate(wavData.SampleRate);
 
             // Act
             // Create PooledBlock from WAV data
@@ -129,7 +121,6 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             Console.WriteLine($"Input size: {inputFileInfo.Length} bytes");
             Console.WriteLine($"Output size: {outputFileInfo.Length} bytes");
             Console.WriteLine($"WAV Info: {wavData.SampleRate}Hz, {wavData.Channels} channels, {wavData.BitsPerSample} bits");
-            Console.WriteLine($"Effects Chain: HPF (Cutoff={cutoffParam.Value}Hz, Threshold={thresholdParam.Value}dB) -> Gain ({gainParam.Value}x)");
         }
 
         private WavData LoadWavFile(string filePath)

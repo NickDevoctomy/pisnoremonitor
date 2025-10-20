@@ -1,5 +1,4 @@
-﻿using PiSnoreMonitor.Data;
-using System.Collections.Generic;
+﻿using PiSnoreMonitor.Core.Data;
 
 namespace PiSnoreMonitor.Core.Services.Effects
 {

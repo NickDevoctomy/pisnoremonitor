@@ -1,5 +1,5 @@
-﻿using PiSnoreMonitor.Core.Services.Effects;
-using PiSnoreMonitor.Data;
+﻿using PiSnoreMonitor.Core.Data;
+using PiSnoreMonitor.Core.Services.Effects;
 using PortAudioSharp;
 using System;
 using System.Buffers;

@@ -1,4 +1,4 @@
-﻿using PiSnoreMonitor.Data;
+﻿using PiSnoreMonitor.Core.Data;
 
 namespace PiSnoreMonitor.Core.Services.Effects
 {
