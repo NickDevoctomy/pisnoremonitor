@@ -61,19 +61,19 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
         }
 
         [Theory]
-        [InlineData("Data/Wavs/Unprocessed1.wav", "Data/Output/EffectsBus-Processed1.wav")]
+        [InlineData("Data/Wavs/Unprocessed2.wav", "Data/Output/EffectsBus-Processed2.wav")]
         public void GivenWavFile_WhenEffectsBusApplied_ThenOutputIsFiltered(
             string inputFileName,
             string outputFileName)
         {
             // Arrange
             var hpfEffect = new HpfEffect();
-            var cutoffParam = new FloatParameter("CutoffFrequency", 12.0f);
+            var cutoffParam = new FloatParameter("CutoffFrequency", 60.0f);
             var sampleRateParam = new FloatParameter("SampleRate", 44100);
             hpfEffect.SetParameters(cutoffParam, sampleRateParam);
 
             var gainEffect = new GainEffect();
-            var gainParam = new FloatParameter("Gain", 20.0f);
+            var gainParam = new FloatParameter("Gain", 2.0f);
             gainEffect.SetParameters(gainParam);
 
             var sut = new EffectsBus();

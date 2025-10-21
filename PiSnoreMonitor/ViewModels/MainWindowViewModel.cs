@@ -5,15 +5,19 @@ using PiSnoreMonitor.Services;
 using Avalonia.Controls;
 using System;
 using System.IO;
-using Avalonia;
+using PiSnoreMonitor.Configuration;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace PiSnoreMonitor.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
+        private readonly IAppSettingsLoader? _appSettingsLoader;
         private readonly ISystemMonitor? _systemMonitor;
         private readonly IStorageService? _storageService;
-        private readonly IWavRecorder? _wavRecorder;
+        private readonly IWavRecorderFactory? _wavRecorderFactory;
+        private IWavRecorder? _wavRecorder;
 
         [ObservableProperty]
         private bool isRecording = false;
@@ -43,6 +47,9 @@ namespace PiSnoreMonitor.ViewModels
         private bool isErrorVisible = false;
 
         [ObservableProperty]
+        private string errorMessageTitle = string.Empty;
+
+        [ObservableProperty]
         private string errorMessageText = string.Empty;
 
         [ObservableProperty]
@@ -54,6 +61,9 @@ namespace PiSnoreMonitor.ViewModels
         [ObservableProperty]
         private string cpuUsageText = "🖥️ ?%";
 
+        [ObservableProperty]
+        private AppSettings? appSettings;
+
         private DateTime _startedRecordingAt;
         private int _updateCounter = 0;
 
@@ -62,18 +72,24 @@ namespace PiSnoreMonitor.ViewModels
         }
 
         public MainWindowViewModel(
+            IAppSettingsLoader appSettingsLoader,
             ISystemMonitor systemMonitor,
             IStorageService storageService,
-            IWavRecorder wavRecorder)
+            IWavRecorderFactory wavRecorderFactory)
         {
+            _appSettingsLoader = appSettingsLoader;
             _systemMonitor = systemMonitor;
             _storageService = storageService;
-            _wavRecorder = wavRecorder;
+            _wavRecorderFactory = wavRecorderFactory;
 
             _systemMonitor.OnSystemStatusUpdate += _systemMonitor_OnSystemStatusUpdate;
-            _wavRecorder.WavRecorderRecording += WavRecorder_WavRecorderRecording;
 
             _systemMonitor.StartMonitoring();
+        }
+
+        public async Task InitializeAsync(CancellationToken cancellationToken)
+        {
+            AppSettings = await _appSettingsLoader!.LoadAsync(cancellationToken);
         }
 
         private void _systemMonitor_OnSystemStatusUpdate(object? sender, SystemMonitorStatusEventArgs e)
@@ -142,23 +158,36 @@ namespace PiSnoreMonitor.ViewModels
             }
         }
 
-        private void DisplayErrorMessage(string message)
+        private void DisplayErrorMessage(
+            string title,
+            string message)
         {
+            ErrorMessageTitle = title;
             ErrorMessageText = message;
             IsErrorVisible = true;
         }
 
         [RelayCommand]
-        private void Close()
+        private async Task Close()
         {
+            if(IsRecording)
+            {
+                await ToggleRecording();
+            }
+
+            await _appSettingsLoader!.SaveAsync(AppSettings!, CancellationToken.None);
+
             Environment.Exit(0);
         }
 
         [RelayCommand]
-        private void ToggleRecording()
+        private async Task ToggleRecording()
         {
             if (!IsRecording)
             {
+                _wavRecorder = await _wavRecorderFactory!.CreateAsync(CancellationToken.None);
+                _wavRecorder.WavRecorderRecording += WavRecorder_WavRecorderRecording;
+
                 var outputFilePath = string.Empty;
                 try
                 {
@@ -166,7 +195,7 @@ namespace PiSnoreMonitor.ViewModels
                 }
                 catch (InvalidOperationException ex)
                 {
-                    DisplayErrorMessage(ex.Message);
+                    DisplayErrorMessage("Storage Error", ex.Message);
                     return;
                 }
                 _wavRecorder!.StartRecording(outputFilePath);
@@ -191,6 +220,10 @@ namespace PiSnoreMonitor.ViewModels
                 UpdateStartedRecordingTime();
                 UpdateElapsedRecordingTime();
                 Amplitude = 0;
+
+                _wavRecorder.WavRecorderRecording -= WavRecorder_WavRecorderRecording;
+                _wavRecorder.Dispose();
+                _wavRecorder = null;
             }
         }
 

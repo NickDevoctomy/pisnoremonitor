@@ -1,50 +1,33 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="using:PiSnoreMonitor.ViewModels"
-        xmlns:controls="using:PiSnoreMonitor.Controls"
-        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="320"
-        x:Class="PiSnoreMonitor.Views.MainWindowView"
-        x:DataType="vm:MainWindowViewModel"
-        Title="PiSnoreMonitor"
-        WindowStartupLocation="CenterScreen"
-        WindowState="FullScreen"
-        Topmost="True">
-    <Design.DataContext>
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:vm="using:PiSnoreMonitor.ViewModels"
+		xmlns:controls="using:PiSnoreMonitor.Controls"
+		mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
+		x:Class="PiSnoreMonitor.Views.MainWindowView"
+		x:DataType="vm:MainWindowViewModel"
+		Title="PiSnoreMonitor"
+		WindowStartupLocation="CenterScreen"
+		WindowState="FullScreen"
+		Topmost="True">
+	<Design.DataContext>
+		<vm:MainWindowViewModel/>
+	</Design.DataContext>
 	<Grid>
-        <Grid.ColumnDefinitions>
-		    <ColumnDefinition Width="48" />
-		    <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="48" />
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
 			<RowDefinition Height="{Binding TitleRowGridHeight}" />
 			<RowDefinition Height="*" />
 			<RowDefinition Height="{Binding StatusRowGridHeight}" />
-        </Grid.RowDefinitions>
+		</Grid.RowDefinitions>
 
-        <controls:LevelMeter HorizontalAlignment="Stretch"
-                     VerticalAlignment="Stretch"
-                     Margin="8"
-                     Minimum="0"
-                     Maximum="100"
-                     LevelMarkerThickness="4"
-                     Value="{Binding Amplitude}"
-                     Grid.Row="1">
-			<controls:LevelMeter.TrackBrush>
-				<LinearGradientBrush StartPoint="0,0" EndPoint="0%,100%">
-                    <GradientStop Color="Red" Offset="0.0"/>
-                    <GradientStop Color="Orange" Offset="0.5"/>
-                    <GradientStop Color="Green" Offset="1.0"/>
-                </LinearGradientBrush>
-            </controls:LevelMeter.TrackBrush>
-        </controls:LevelMeter>
-
-        <Panel Grid.ColumnSpan="2"
-               HorizontalAlignment="Stretch"
-               VerticalAlignment="Stretch">
+		<Panel Grid.ColumnSpan="2"
+			   HorizontalAlignment="Stretch"
+			   VerticalAlignment="Stretch">
 			<Grid Grid.Margin="8,0,8,0">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="*" />
@@ -52,55 +35,169 @@
 					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="32" />
-                </Grid.ColumnDefinitions>
+				</Grid.ColumnDefinitions>
 
-                <Label Content="{Binding CurrentDateTimeText}" VerticalAlignment="Center" />
-                <Label Content="{Binding MemoryUsageText}" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <Label Content="{Binding CpuUsageText}" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" />
-            
-                <Button Content="X" Grid.Column="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding CloseCommand}"></Button>
-            </Grid>
-        </Panel>
+				<Label Content="{Binding CurrentDateTimeText}" VerticalAlignment="Center" />
+				<Label Content="{Binding MemoryUsageText}" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" />
+				<Label Content="{Binding CpuUsageText}" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" />
 
-		<Button HorizontalAlignment="Center" 
-                Background="{Binding ButtonBackground}"
-                Content="{Binding ButtonText}"
-                Command="{Binding ToggleRecordingCommand}"
-                HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center"
-                Grid.Row="1"
-                Grid.Column="1"
-                Width="150"
-                Height="100"/>
+				<Button Content="X" Grid.Column="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding CloseCommand}"></Button>
+			</Grid>
+		</Panel>
 
-        <Panel Grid.Row="2" 
-               Grid.ColumnSpan="2"
-               Background="DarkGray"
-               Margin="8">
-            <Grid VerticalAlignment="Center">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="75" />
-					<ColumnDefinition Width="*" />
-					<ColumnDefinition Width="75" />
-					<ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+		<TabControl Grid.Row="1"
+					Grid.ColumnSpan="2"
+					SelectedIndex="0">
+			<TabItem Header="Record" FontSize="13">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="48" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="*" />
+						<RowDefinition Height="{Binding StatusRowGridHeight}" />
+					</Grid.RowDefinitions>
 
-                <Label Grid.Column="0" FontWeight="Bold">Started : </Label>
-                <Label Grid.Column="1" Content="{Binding StartedRecordingAtText}" />
-                <Label Grid.Column="2" FontWeight="Bold">Elapsed : </Label>
-                <Label Grid.Column="3" HorizontalContentAlignment="Right" Content="{Binding ElapsedRecordingTimeText}" />
-            </Grid>
-        </Panel>
+					<controls:LevelMeter HorizontalAlignment="Stretch"
+										 VerticalAlignment="Stretch"
+										 Margin="8"
+										 Minimum="0"
+										 Maximum="100"
+										 LevelMarkerThickness="4"
+										 Value="{Binding Amplitude}">
+						<controls:LevelMeter.TrackBrush>
+							<LinearGradientBrush StartPoint="0,0" EndPoint="0%,100%">
+								<GradientStop Color="Red" Offset="0.0"/>
+								<GradientStop Color="Orange" Offset="0.5"/>
+								<GradientStop Color="Green" Offset="1.0"/>
+							</LinearGradientBrush>
+						</controls:LevelMeter.TrackBrush>
+					</controls:LevelMeter>
 
-        <Panel Background="Red"
-               Grid.ColumnSpan="2"
-               Grid.RowSpan="3"
-               IsVisible="{Binding IsErrorVisible}">
-            <StackPanel HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
-				<Label Content="{Binding ErrorMessageText}"></Label>
-                <Button Content="OK" HorizontalAlignment="Center" Background="White" Foreground="DarkGray" Command="{Binding DismissErrorCommand}"></Button>
-            </StackPanel>
-        </Panel>
+					<Button HorizontalAlignment="Center"
+							Background="{Binding ButtonBackground}"
+							Content="{Binding ButtonText}"
+							Command="{Binding ToggleRecordingCommand}"
+							HorizontalContentAlignment="Center"
+							VerticalContentAlignment="Center"
+							Grid.Column="1"
+							Width="150"
+							Height="100"/>
+
+					<Panel Grid.Row="1"
+						   Grid.ColumnSpan="2"
+						   Background="DarkGray"
+						   Margin="8">
+						<Grid VerticalAlignment="Center">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="75" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="75" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+
+							<Label Grid.Column="0" FontWeight="Bold">Started : </Label>
+							<Label Grid.Column="1" Content="{Binding StartedRecordingAtText}" />
+							<Label Grid.Column="2" FontWeight="Bold">Elapsed : </Label>
+							<Label Grid.Column="3" HorizontalContentAlignment="Right" Content="{Binding ElapsedRecordingTimeText}" />
+						</Grid>
+					</Panel>
+				</Grid>
+			</TabItem>
+
+			<TabItem Header="Configuration"
+					 FontSize="13">
+				<ScrollViewer HorizontalScrollBarVisibility="Hidden"
+							  VerticalScrollBarVisibility="Auto">
+					<StackPanel>
+						<Label Content="EFFECTS BUS" FontWeight="Bold" FontSize="16" />
+
+						<Label Content="🌈 High Pass Filter" FontWeight="Bold" Margin="8,8,0,0" />
+						<Label Content="Remove low frequency hum from the recording." Margin="16,0,0,0" />
+						<ToggleSwitch x:Name="HpfEffectEnable" Margin="16,0,0,0" IsChecked="{Binding AppSettings.EnableHpfEffect, Mode=TwoWay}" ></ToggleSwitch>
+						<Border BorderThickness="1"
+								BorderBrush="DarkGray"
+								CornerRadius="8"
+								IsVisible="{Binding #HpfEffectEnable.IsChecked}"
+								Margin="16,0,0,0">
+							<Panel>
+								<StackPanel>
+									<Label Content="Cutoff Frequency" FontWeight="Bold" Margin="8,8,0,0" />
+									<Label Content="Set the cutoff frequency for the high pass filter." Margin="8,0,0,0" />
+									<Slider Minimum="0"
+											Maximum="200"
+											Value="{Binding AppSettings.HpfEffectCutoffFrequency, Mode=TwoWay}"
+											Margin="8,0,0,0"
+											TickFrequency="20"
+											TickPlacement="Outside"
+											ToolTip.Tip="{Binding Value, RelativeSource={RelativeSource Self}}"/>
+								</StackPanel>
+							</Panel>
+						</Border>
+
+						<Label Content="🎺 Gain" FontWeight="Bold" Margin="8,8,0,0" />
+						<Label Content="Increase the volume of the recording." Margin="16,0,0,0" />
+						<ToggleSwitch x:Name="GainEffectEnable" Margin="16,0,0,0" IsChecked="{Binding AppSettings.EnableGainEffect, Mode=TwoWay}"></ToggleSwitch>
+						<Border BorderThickness="1"
+								BorderBrush="DarkGray"
+								CornerRadius="8"
+								IsVisible="{Binding #GainEffectEnable.IsChecked}"
+								Margin="16,0,0,0">
+							<Panel>
+								<StackPanel>
+									<Label Content="Multiplier" FontWeight="Bold" Margin="8,8,0,0" />
+									<Label Content="Multiplier to apply to the audio level of the recording." Margin="8,0,0,0" />
+									<Slider Minimum="0.1"
+											Maximum="20"
+											Value="{Binding AppSettings.GainEffectGain, Mode=TwoWay}"
+											Margin="8,0,0,0"
+											TickFrequency="0.1"
+											TickPlacement="Outside"
+											ToolTip.Tip="{Binding Value, RelativeSource={RelativeSource Self}}" />
+								</StackPanel>
+							</Panel>
+						</Border>
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
+		</TabControl>
+
+		<Panel Background="DarkRed"
+			   Grid.ColumnSpan="2"
+			   Grid.RowSpan="3"
+			   IsVisible="{Binding IsErrorVisible}">
+			<Grid Height="240">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="64"/>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="64"/>
+				</Grid.RowDefinitions>
+
+				<StackPanel>
+					<Label Content="🪳"
+						   HorizontalAlignment="Center"
+						   VerticalAlignment="Bottom"
+						   FontSize="30"
+						   Foreground="White"/>
+					<Label Content="{Binding ErrorMessageTitle}"
+						   HorizontalAlignment="Center"
+						   VerticalAlignment="Bottom"
+						   FontSize="16"
+						   FontWeight="Bold"/>
+				</StackPanel>
+				<Label Content="{Binding ErrorMessageText}"
+					   HorizontalAlignment="Center"
+					   VerticalContentAlignment="Center"
+					   Grid.Row="1" />
+				<Button Grid.Row="2"
+						Content="OK"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Top"
+						Background="White"
+						Foreground="DarkGray"
+						Command="{Binding DismissErrorCommand}" />
+			</Grid>
+		</Panel>
 	</Grid>
 </Window>

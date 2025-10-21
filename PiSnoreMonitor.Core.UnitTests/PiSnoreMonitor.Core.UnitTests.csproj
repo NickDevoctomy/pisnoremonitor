@@ -12,10 +12,14 @@
 
   <ItemGroup>
     <None Remove="Data\Wavs\Unprocessed1.wav" />
+    <None Remove="Data\Wavs\Unprocessed2.wav" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Data\Wavs\Unprocessed1.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Wavs\Unprocessed2.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

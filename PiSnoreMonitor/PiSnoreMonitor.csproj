@@ -27,10 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Enums\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\PiSnoreMonitor.Core\PiSnoreMonitor.Core.csproj" />
   </ItemGroup>
 </Project>

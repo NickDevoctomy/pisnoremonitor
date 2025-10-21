@@ -4,6 +4,9 @@
       <NamedTestSelector>
         <TestName>PiSnoreMonitor.Core.UnitTests.Services.Effects.ManualTests.GivenWavFile_WhenHpfEffectApplied_ThenOutputIsFiltered("Data/Wavs/Unprocessed1.wav", "Data/Output/Processed1.wav")</TestName>
       </NamedTestSelector>
+      <FixtureTestSelector>
+        <FixtureName>PiSnoreMonitor.Core.UnitTests.Services.Effects.ManualTests</FixtureName>
+      </FixtureTestSelector>
     </IgnoredTests>
   </Settings>
 </ProjectConfiguration>
