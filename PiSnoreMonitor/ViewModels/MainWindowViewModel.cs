@@ -8,11 +8,13 @@ using System.IO;
 using PiSnoreMonitor.Configuration;
 using System.Threading.Tasks;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace PiSnoreMonitor.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
+        private readonly ILogger<MainWindowViewModel>? _logger;
         private readonly IAppSettingsLoader? _appSettingsLoader;
         private readonly ISystemMonitor? _systemMonitor;
         private readonly IStorageService? _storageService;
@@ -72,15 +74,19 @@ namespace PiSnoreMonitor.ViewModels
         }
 
         public MainWindowViewModel(
+            ILogger<MainWindowViewModel> logger,
             IAppSettingsLoader appSettingsLoader,
             ISystemMonitor systemMonitor,
             IStorageService storageService,
             IWavRecorderFactory wavRecorderFactory)
         {
+            _logger = logger;
             _appSettingsLoader = appSettingsLoader;
             _systemMonitor = systemMonitor;
             _storageService = storageService;
             _wavRecorderFactory = wavRecorderFactory;
+
+            _logger.LogInformation("MainWindowViewModel initialized");
 
             _systemMonitor.OnSystemStatusUpdate += _systemMonitor_OnSystemStatusUpdate;
 
@@ -89,7 +95,9 @@ namespace PiSnoreMonitor.ViewModels
 
         public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
+            _logger?.LogInformation("Initializing MainWindowViewModel");
             AppSettings = await _appSettingsLoader!.LoadAsync(cancellationToken);
+            _logger?.LogInformation("MainWindowViewModel initialization completed");
         }
 
         private void _systemMonitor_OnSystemStatusUpdate(object? sender, SystemMonitorStatusEventArgs e)
@@ -185,6 +193,7 @@ namespace PiSnoreMonitor.ViewModels
         {
             if (!IsRecording)
             {
+                _logger?.LogInformation("Starting recording");
                 _wavRecorder = await _wavRecorderFactory!.CreateAsync(CancellationToken.None);
                 _wavRecorder.WavRecorderRecording += WavRecorder_WavRecorderRecording;
 
@@ -192,9 +201,11 @@ namespace PiSnoreMonitor.ViewModels
                 try
                 {
                     outputFilePath = GetOutputFilePath();
+                    _logger?.LogInformation("Recording output file path: {OutputFilePath}", outputFilePath);
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger?.LogError(ex, "Failed to get output file path for recording");
                     DisplayErrorMessage("Storage Error", ex.Message);
                     return;
                 }
@@ -208,9 +219,11 @@ namespace PiSnoreMonitor.ViewModels
                 _startedRecordingAt = DateTime.Now;
                 UpdateStartedRecordingTime();
                 UpdateElapsedRecordingTime();
+                _logger?.LogInformation("Recording started successfully");
             }
             else
             {
+                _logger?.LogInformation("Stopping recording");
                 await _wavRecorder!.StopRecordingAsync(CancellationToken.None);
                 IsRecording = false;
                 ButtonBackground = Brushes.LightGray;
@@ -224,6 +237,7 @@ namespace PiSnoreMonitor.ViewModels
                 _wavRecorder.WavRecorderRecording -= WavRecorder_WavRecorderRecording;
                 _wavRecorder.Dispose();
                 _wavRecorder = null;
+                _logger?.LogInformation("Recording stopped successfully");
             }
         }
 

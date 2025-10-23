@@ -1,4 +1,5 @@
-﻿using PiSnoreMonitor.Core.Data;
+﻿using Microsoft.Extensions.Logging;
+using PiSnoreMonitor.Core.Data;
 using PiSnoreMonitor.Core.Services.Effects;
 using PiSnoreMonitor.Extensions;
 using PortAudioSharp;
@@ -17,7 +18,8 @@ namespace PiSnoreMonitor.Services
         int sampleRate,
         int channels,
         uint framesPerBuffer,
-        IEffectsBus? effectsBus) : IWavRecorder
+        IEffectsBus? effectsBus,
+        ILogger<WavRecorder> logger) : IWavRecorder
     {
         public event EventHandler<WavRecorderRecordingEventArgs>? WavRecorderRecording;
 
@@ -33,7 +35,7 @@ namespace PiSnoreMonitor.Services
         private readonly Channel<PooledBlock> channel =
             Channel.CreateBounded<PooledBlock>(new BoundedChannelOptions(capacity: 8)
             {
-                FullMode = BoundedChannelFullMode.DropOldest
+                FullMode = BoundedChannelFullMode.DropOldest,
             });
 
         // WAV constants for simple PCM header positions (no extra chunks)
@@ -49,6 +51,7 @@ namespace PiSnoreMonitor.Services
             string filePath,
             CancellationToken cancellationToken = default)
         {
+            logger.LogInformation($"WavRecorder:StartRecordingAsync - {filePath}");
             ObjectDisposedException.ThrowIf(disposed, nameof(WavRecorder));
 
             if (running)
@@ -110,30 +113,36 @@ namespace PiSnoreMonitor.Services
 
         public async Task StopRecordingAsync(CancellationToken cancellationToken = default)
         {
+            logger.LogInformation($"WavRecorder:StopRecordingAsync");
             if (!running) return;
 
             try
             {
+                logger.LogInformation($"WavRecorder:StopRecordingAsync - Stopping PortAudio stream.");
                 portAudioStream?.Stop();
             }
             catch { /* ignore */ }
 
             try
             {
+                logger.LogInformation($"WavRecorder:StopRecordingAsync - Closing PortAudio stream.");
                 portAudioStream?.Close();
             }
             catch { /* ignore */ }
 
             portAudioStream = null;
-
             running = false;
+
+            logger.LogInformation($"WavRecorder:StopRecordingAsync - Completing channel writer.");
             channel.Writer.TryComplete();
             
             if(writerTask != null)
             {
+                logger.LogInformation($"WavRecorder:StopRecordingAsync - Waiting for writer task.");
                 try { await writerTask!; } catch { /* ignore */ }
             }
 
+            logger.LogInformation($"WavRecorder:StopRecordingAsync - Closing and flushing output stream.");
             if (outputFileStream != null)
             {
                 await PatchHeaderAsync(outputFileStream, dataBytes, cancellationToken);
@@ -145,6 +154,7 @@ namespace PiSnoreMonitor.Services
 
             if (portAudioIsInitialised)
             {
+                logger.LogInformation($"WavRecorder:StopRecordingAsync - Shutting down PortAudio.");
                 PortAudio.Terminate();
                 portAudioIsInitialised = false;
             }
