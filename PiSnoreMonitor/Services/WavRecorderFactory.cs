@@ -15,7 +15,7 @@ namespace PiSnoreMonitor.Services
             _appSettingsLoader = appSettingsLoader;
         }
 
-        public async Task<IWavRecorder> CreateAsync(CancellationToken cancellationToken)
+        public async Task<IWavRecorder> CreateAsync(CancellationToken cancellationToken = default)
         {
             const int sampleRate = 44100;
             var appSettings = await _appSettingsLoader.LoadAsync(cancellationToken);

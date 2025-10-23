@@ -23,14 +23,24 @@ namespace PiSnoreMonitor.Services
             }
         }
 
-        public async Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken)
+        public async Task<string> ReadAllTextAsync(
+            string path,
+            CancellationToken cancellationToken = default)
         {
-            return await System.IO.File.ReadAllTextAsync(path, cancellationToken);
+            return await System.IO.File.ReadAllTextAsync(
+                path,
+                cancellationToken);
         }
 
-        public async Task WriteAllTextAsync(string path, string text, CancellationToken cancellationToken)
+        public async Task WriteAllTextAsync(
+            string path,
+            string text,
+            CancellationToken cancellationToken = default)
         {
-            await System.IO.File.WriteAllTextAsync(path, text, cancellationToken);
+            await System.IO.File.WriteAllTextAsync(
+                path,
+                text,
+                cancellationToken);
         }
     }
 }

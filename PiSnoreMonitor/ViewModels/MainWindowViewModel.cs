@@ -87,7 +87,7 @@ namespace PiSnoreMonitor.ViewModels
             _systemMonitor.StartMonitoring();
         }
 
-        public async Task InitializeAsync(CancellationToken cancellationToken)
+        public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
             AppSettings = await _appSettingsLoader!.LoadAsync(cancellationToken);
         }
@@ -198,7 +198,7 @@ namespace PiSnoreMonitor.ViewModels
                     DisplayErrorMessage("Storage Error", ex.Message);
                     return;
                 }
-                _wavRecorder!.StartRecording(outputFilePath);
+                await _wavRecorder!.StartRecordingAsync(outputFilePath, CancellationToken.None);
                 IsRecording = true;
                 ButtonBackground = Brushes.Red;
                 ButtonText = "Stop Recording";
@@ -211,7 +211,7 @@ namespace PiSnoreMonitor.ViewModels
             }
             else
             {
-                _wavRecorder!.StopRecording();
+                await _wavRecorder!.StopRecordingAsync(CancellationToken.None);
                 IsRecording = false;
                 ButtonBackground = Brushes.LightGray;
                 ButtonText = "Start Recording";

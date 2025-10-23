@@ -31,7 +31,9 @@ namespace PiSnoreMonitor.Services
             _monitorTimer!.Stop();
         }
 
-        private void MonitorTimer_Elapsed(object? sender, ElapsedEventArgs e)
+        private void MonitorTimer_Elapsed(
+            object? sender,
+            ElapsedEventArgs e)
         {
             _monitorTimer!.Stop();
             var (totalBytes, freeBytes) = _memoryUsageSampler.GetSystemMemory();

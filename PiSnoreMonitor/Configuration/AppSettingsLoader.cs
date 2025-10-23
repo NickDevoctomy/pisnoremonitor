@@ -13,7 +13,7 @@ namespace PiSnoreMonitor.Configuration
             WriteIndented = true
         };
 
-        public async Task<AppSettings> LoadAsync(CancellationToken cancellationToken)
+        public async Task<AppSettings> LoadAsync(CancellationToken cancellationToken = default)
         {
             var path = ioService.GetSpecialPath(Enums.SpecialPaths.AppUserStorage);
             path = System.IO.Path.Combine(path, "config.json");
@@ -28,7 +28,7 @@ namespace PiSnoreMonitor.Configuration
             return new AppSettings();
         }
 
-        public async Task SaveAsync(AppSettings appSettings, CancellationToken cancellationToken)
+        public async Task SaveAsync(AppSettings appSettings, CancellationToken cancellationToken = default)
         {
             var path = ioService.GetSpecialPath(Enums.SpecialPaths.AppUserStorage);
             path = System.IO.Path.Combine(path, "config.json");

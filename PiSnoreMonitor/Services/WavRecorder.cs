@@ -1,10 +1,12 @@
 ﻿using PiSnoreMonitor.Core.Data;
 using PiSnoreMonitor.Core.Services.Effects;
+using PiSnoreMonitor.Extensions;
 using PortAudioSharp;
 using System;
 using System.Buffers;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -19,11 +21,10 @@ namespace PiSnoreMonitor.Services
     {
         public event EventHandler<WavRecorderRecordingEventArgs>? WavRecorderRecording;
 
-        private PortAudioSharp.Stream? paStream;
-        private FileStream? fs;
-        private BinaryWriter? bw;
+        private PortAudioSharp.Stream? portAudioStream;
+        private FileStream? outputFileStream;
         private Task? writerTask;
-        private bool paInitialized;
+        private bool portAudioIsInitialised;
         private volatile bool running;
         private long dataBytes;
         private readonly TimeSpan headerRefreshInterval = TimeSpan.FromSeconds(5);
@@ -44,7 +45,9 @@ namespace PiSnoreMonitor.Services
             Dispose(disposing: false);
         }
 
-        public void StartRecording(string filePath)
+        public async Task StartRecordingAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
         {
             ObjectDisposedException.ThrowIf(disposed, nameof(WavRecorder));
 
@@ -54,7 +57,7 @@ namespace PiSnoreMonitor.Services
             }
 
             PortAudio.Initialize();
-            paInitialized = true;
+            portAudioIsInitialised = true;
 
             var inputDevice = PortAudio.DefaultInputDevice;
             var inputInfo = PortAudio.GetDeviceInfo(inputDevice);
@@ -68,19 +71,32 @@ namespace PiSnoreMonitor.Services
                 hostApiSpecificStreamInfo = nint.Zero
             };
 
-            fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read,
-                                 bufferSize: 1 << 16, FileOptions.None);
-            bw = new BinaryWriter(fs);
-            WriteWavHeader(bw, sampleRate, channels, bitsPerSample: 16, dataLength: 0);
-            bw.Flush();
+            outputFileStream = new FileStream(
+                filePath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.Read,
+                bufferSize: 1 << 16,
+                FileOptions.Asynchronous);
+            
+            await WriteWavHeaderAsync(
+                outputFileStream,
+                sampleRate,
+                channels,
+                bitsPerSample: 16,
+                dataLength: 0,
+                cancellationToken);
+            await outputFileStream.FlushAsync(cancellationToken);
 
             dataBytes = 0;
             lastHeaderRefreshUtc = DateTime.UtcNow;
             running = true;
+            
+            writerTask = Task.Run(
+                () => WriterLoop(cancellationToken),
+                cancellationToken);
 
-            writerTask = Task.Run(WriterLoop);
-
-            paStream = new PortAudioSharp.Stream(
+            portAudioStream = new PortAudioSharp.Stream(
                 inputParams,
                 null,
                 sampleRate,
@@ -89,47 +105,48 @@ namespace PiSnoreMonitor.Services
                 OutputStreamCallback,
                 userData: nint.Zero);
 
-            paStream.Start();
+            portAudioStream.Start();
         }
 
-        public void StopRecording()
+        public async Task StopRecordingAsync(CancellationToken cancellationToken = default)
         {
             if (!running) return;
 
             try
             {
-                paStream?.Stop();
+                portAudioStream?.Stop();
             }
             catch { /* ignore */ }
 
             try
             {
-                paStream?.Close();
+                portAudioStream?.Close();
             }
             catch { /* ignore */ }
 
-            paStream = null;
+            portAudioStream = null;
 
             running = false;
             channel.Writer.TryComplete();
-            try { writerTask?.Wait(); } catch { /* ignore */ }
-
-            if (bw != null && fs != null)
+            
+            if(writerTask != null)
             {
-                PatchHeader(bw, fs, dataBytes);
-                bw.Flush();
-                fs.Flush(true);
-                bw.Dispose();
-                fs.Dispose();
+                try { await writerTask!; } catch { /* ignore */ }
             }
 
-            bw = null;
-            fs = null;
+            if (outputFileStream != null)
+            {
+                await PatchHeaderAsync(outputFileStream, dataBytes, cancellationToken);
+                await outputFileStream.FlushAsync(cancellationToken);
+                outputFileStream.Dispose();
+            }
 
-            if (paInitialized)
+            outputFileStream = null;
+
+            if (portAudioIsInitialised)
             {
                 PortAudio.Terminate();
-                paInitialized = false;
+                portAudioIsInitialised = false;
             }
         }
 
@@ -171,17 +188,18 @@ namespace PiSnoreMonitor.Services
             return StreamCallbackResult.Continue;
         }
 
-        private async Task WriterLoop()
+        private async Task WriterLoop(CancellationToken cancellationToken = default)
         {
             try
             {
-                while (await channel.Reader.WaitToReadAsync().ConfigureAwait(false))
+                
+                while (await channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     while (channel.Reader.TryRead(out var block))
                     {
                         var processedBlock = effectsBus?.Process(block, block.Count) ?? block;
 
-                        float amplitude = CalculateAmplitude(processedBlock, 0);
+                        float amplitude = processedBlock.CalculateAmplitude(0);
                         System.Diagnostics.Debug.WriteLine($"Firing event with amplitude: {amplitude:F3}");
                         WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs
                         {
@@ -190,18 +208,21 @@ namespace PiSnoreMonitor.Services
 
                         try
                         {
-                            if (bw == null || fs == null) return;
+                            if (outputFileStream == null) return;
 
-                            bw.Write(processedBlock.Buffer, 0, processedBlock.Count);
+                            await outputFileStream.WriteAsync(
+                                processedBlock.Buffer.AsMemory(0, processedBlock.Count),
+                                cancellationToken);
                             dataBytes += processedBlock.Count;
 
-                            // Periodically patch header & fsync to minimize corruption on power loss
                             var now = DateTime.UtcNow;
                             if (now - lastHeaderRefreshUtc >= headerRefreshInterval)
                             {
-                                PatchHeader(bw, fs, dataBytes);
-                                bw.Flush();
-                                fs.Flush(true);
+                                await PatchHeaderAsync(
+                                    outputFileStream,
+                                    dataBytes,
+                                    cancellationToken);
+                                await outputFileStream.FlushAsync(cancellationToken);
                                 lastHeaderRefreshUtc = now;
                             }
                         }
@@ -218,83 +239,45 @@ namespace PiSnoreMonitor.Services
             }
         }
 
-        private float CalculateAmplitude(PooledBlock block, double maximumDbLevel)
-        {
-            if (block.Buffer == null || block.Count == 0)
-            {
-                return 0.0f;
-            }
-            
-            int sampleCount = block.Count / 2;
-            if (sampleCount == 0) return 0.0f;
-            
-            double sum = 0;
-            
-            unsafe
-            {
-                fixed (byte* bufferPtr = block.Buffer)
-                {
-                    short* samples = (short*)bufferPtr;
-                    
-                    for (int i = 0; i < sampleCount; i++)
-                    {
-                        short sample = samples[i];
-                        sum += (double)sample * sample;
-                    }
-                }
-            }
-            
-            double rms = Math.Sqrt(sum / sampleCount);
-            double rmsNormalized = rms / 32767.0;
-            
-            // Convert to dB: 20 * log10(rmsNormalized)
-            // For very small values, clamp to prevent log(0)
-            if (rmsNormalized < 1e-10) return 0.0f;
-            
-            double dB = 20.0 * Math.Log10(rmsNormalized);
-            const double minDb = -60.0;        
-            double normalizedDb = Math.Max(0.0, (dB - minDb) / (maximumDbLevel - minDb));      
-            return (float)Math.Min(1.0, Math.Max(0.0, normalizedDb));
-        }
-
-        private static void WriteWavHeader(
-            BinaryWriter bw,
+        private static async Task WriteWavHeaderAsync(
+            FileStream fileStream,
             int sampleRate,
             int channels,
             int bitsPerSample,
-            long dataLength)
+            long dataLength,
+            CancellationToken cancellationToken = default)
         {
             int byteRate = sampleRate * channels * bitsPerSample / 8;
             short blockAlign = (short)(channels * bitsPerSample / 8);
 
-            bw.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
-            bw.Write((int)(36 + dataLength));   // will be patched
-            bw.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
-            bw.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
-            bw.Write(16);                       // PCM fmt chunk size
-            bw.Write((short)1);                 // PCM
-            bw.Write((short)channels);
-            bw.Write(sampleRate);
-            bw.Write(byteRate);
-            bw.Write(blockAlign);
-            bw.Write((short)bitsPerSample);
-            bw.Write(System.Text.Encoding.ASCII.GetBytes("data"));
-            bw.Write((int)dataLength);
+            await fileStream.WriteStringAsync("RIFF", cancellationToken);
+            await fileStream.WriteInt32Async((int)(36 + dataLength), cancellationToken);   // will be patched
+            await fileStream.WriteStringAsync("WAVE", cancellationToken);
+            await fileStream.WriteStringAsync("fmt ", cancellationToken);
+            await fileStream.WriteInt32Async(16, cancellationToken);                       // PCM fmt chunk size
+            await fileStream.WriteInt16Async(1, cancellationToken);                        // PCM
+            await fileStream.WriteInt16Async((short)channels, cancellationToken);
+            await fileStream.WriteInt32Async(sampleRate, cancellationToken);
+            await fileStream.WriteInt32Async(byteRate, cancellationToken);
+            await fileStream.WriteInt16Async(blockAlign, cancellationToken);
+            await fileStream.WriteInt16Async((short)bitsPerSample, cancellationToken);
+            await fileStream.WriteStringAsync("data", cancellationToken);
+            await fileStream.WriteInt32Async((int)dataLength, cancellationToken);
         }
 
-        private static void PatchHeader(
-            BinaryWriter bw,
-            FileStream fs,
-            long dataBytes)
+        private static async Task PatchHeaderAsync(
+            FileStream fileStream,
+            long dataBytes,
+            CancellationToken cancellationToken = default)
         {
-            fs.Position = DataSizeOffset;
-            bw.Write((int)dataBytes);
+            fileStream.Position = DataSizeOffset;
+            await fileStream.WriteInt32Async((int)dataBytes, cancellationToken);
 
             // RIFF size = 36 + dataBytes (for 44-byte header)
-            fs.Position = RiffSizeOffset;
-            bw.Write((int)(36 + dataBytes));
+            fileStream.Position = RiffSizeOffset;
+            await fileStream.WriteInt32Async((int)(36 + dataBytes), cancellationToken);
 
-            fs.Position = fs.Length;
+            fileStream.Position = fileStream.Length;
         }
 
         protected virtual void Dispose(bool disposing)
@@ -305,7 +288,8 @@ namespace PiSnoreMonitor.Services
                 {
                     if(running)
                     {
-                        StopRecording();
+                        // This should be async proper
+                        StopRecordingAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     writerTask = null;
