@@ -22,7 +22,7 @@ What I'm trying to achieve is a self contained unit for monitoring your snoring 
   - I have this configured to put itself to sleep after 60 seconds using swayidle (wtf that is).
   - I tried an [Aurevita for Raspberry Pi 3.5" Screen](https://www.amazon.co.uk/dp/B0DQ858YQV?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1) - But it is not suitable as the screen cannot be turned off. It   
 * [Mini USB Micrphone](https://www.amazon.co.uk/dp/B0DH1TY54Y?ref=ppx_yo2ov_dt_b_fed_asin_title)
-  - I am considering trying a GPIO based microphone such as [this one](https://www.amazon.co.uk/dp/B07KN8424G/?coliid=IJ11R9CDRGC6N&colid=3LD6SIO28YNXF&psc=1&ref_=list_c_wl_lv_ov_lig_dp_it).
+* (Recommended Microphone) [Keyestudio 5V ReSpeaker 2 Mic Pi HAT 1.0](https://www.aliexpress.com/item/32902300949.html?spm=a2g0o.order_list.order_list_main.5.2e8d1802doU5Ab) - I tried this out after finding the mini USB one above being too quiet. I had to install it with help from ChatGpt, but it didn't take too long and this one is *much* better.
 also introduces more heat than is desirable.
 * USB Storage Device (You'll want something quite sizeable so that you can record without worrying about space.)
   - Ideally you should use a short USB extension lead so that the storage device isn't directly inside the Pi. They get extremely hot and heat up everything around them.
