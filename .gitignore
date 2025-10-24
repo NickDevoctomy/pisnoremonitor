@@ -58,3 +58,4 @@ nunit-*.xml
 
 *.wav
 .NCrunch_PiSnoreMonitor/
+*.tmp
