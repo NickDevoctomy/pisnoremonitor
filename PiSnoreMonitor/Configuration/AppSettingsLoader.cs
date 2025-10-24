@@ -21,7 +21,7 @@ namespace PiSnoreMonitor.Configuration
             if(System.IO.Path.Exists(path))
             {
                 var json = await ioService.ReadAllTextAsync(path, cancellationToken);
-                var appSettings = System.Text.Json.JsonSerializer.Deserialize<AppSettings>(json);
+                var appSettings = JsonSerializer.Deserialize<AppSettings>(json);
                 return appSettings ?? new AppSettings();
             }
 
@@ -33,7 +33,10 @@ namespace PiSnoreMonitor.Configuration
             var path = ioService.GetSpecialPath(Enums.SpecialPaths.AppUserStorage);
             path = System.IO.Path.Combine(path, "config.json");
 
-            var json = System.Text.Json.JsonSerializer.Serialize(appSettings, DefaultJsonSerializerOptions);
+            var fileInfo = new System.IO.FileInfo(path);
+            fileInfo.Directory!.Create();
+
+            var json = JsonSerializer.Serialize(appSettings, DefaultJsonSerializerOptions);
             await ioService.WriteAllTextAsync(path, json, cancellationToken);
         }
     }

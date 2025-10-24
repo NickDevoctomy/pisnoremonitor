@@ -57,3 +57,4 @@ nunit-*.xml
 .vs/
 
 *.wav
+.NCrunch_PiSnoreMonitor/
