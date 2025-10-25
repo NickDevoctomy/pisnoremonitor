@@ -11,20 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Data\Wavs\Unprocessed1.wav" />
-    <None Remove="Data\Wavs\Unprocessed2.wav" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Data\Wavs\Unprocessed1.wav">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Data\Wavs\Unprocessed2.wav">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
@@ -37,6 +23,10 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\Wavs\" />
   </ItemGroup>
 
 </Project>
