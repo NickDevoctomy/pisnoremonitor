@@ -28,12 +28,13 @@ namespace PiSnoreMonitor.Services
         private FileStream? outputFileStream;
         private Task? writerTask;
         private volatile bool running;
+        private volatile bool stopping;
         private long dataBytes;
         private readonly TimeSpan headerRefreshInterval = TimeSpan.FromSeconds(5);
         private DateTime lastHeaderRefreshUtc;
         private bool disposed;
         private readonly Channel<PooledBlock> channel =
-            Channel.CreateBounded<PooledBlock>(new BoundedChannelOptions(capacity: 8)
+            Channel.CreateBounded<PooledBlock>(new BoundedChannelOptions(capacity: 32)
             {
                 FullMode = BoundedChannelFullMode.DropOldest,
             });
@@ -95,6 +96,7 @@ namespace PiSnoreMonitor.Services
             dataBytes = 0;
             lastHeaderRefreshUtc = DateTime.UtcNow;
             running = true;
+            stopping = false;
             
             writerTask = Task.Run(
                 () => WriterLoop(cancellationToken),
@@ -117,12 +119,23 @@ namespace PiSnoreMonitor.Services
             logger.LogInformation($"WavRecorder:StopRecordingAsync");
             if (!running) return;
 
+            // First signal that we're stopping to allow callbacks to finish gracefully
+            stopping = true;
+            
             try
             {
                 logger.LogInformation($"WavRecorder:StopRecordingAsync - Stopping PortAudio stream.");
                 portAudioStream?.Stop();
             }
             catch { /* ignore */ }
+
+            // Add a small delay to allow any pending callbacks to complete
+            // This ensures we don't lose audio data that's still being processed
+            logger.LogInformation($"WavRecorder:StopRecordingAsync - Allowing drain period for pending audio data.");
+            await Task.Delay(100, cancellationToken);
+
+            // Now set running to false to prevent new data from being queued
+            running = false;
 
             try
             {
@@ -132,7 +145,6 @@ namespace PiSnoreMonitor.Services
             catch { /* ignore */ }
 
             portAudioStream = null;
-            running = false;
 
             logger.LogInformation($"WavRecorder:StopRecordingAsync - Completing channel writer.");
             channel.Writer.TryComplete();
@@ -170,9 +182,16 @@ namespace PiSnoreMonitor.Services
             StreamCallbackFlags statusFlags,
             nint userDataPtr)
         {
-            if (input == nint.Zero || !running || channels <= 0)
+            // Allow processing during stopping phase to capture remaining audio data
+            if (input == nint.Zero || (!running && !stopping) || channels <= 0)
             {
                 return StreamCallbackResult.Continue;
+            }
+
+            // If we're stopping and no longer running, signal completion
+            if (!running && stopping)
+            {
+                return StreamCallbackResult.Complete;
             }
 
             int bytesPerSample = 2;
