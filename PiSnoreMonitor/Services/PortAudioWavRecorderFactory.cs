@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace PiSnoreMonitor.Services
 {
-    public class WavRecorderFactory : IWavRecorderFactory
+    public class PortAudioWavRecorderFactory : IWavRecorderFactory
     {
         private readonly IAppSettingsLoader _appSettingsLoader;
         private readonly IServiceProvider _serviceProvider;
 
-        public WavRecorderFactory(
+        public PortAudioWavRecorderFactory(
             IAppSettingsLoader appSettingsLoader,
             IServiceProvider serviceProvider)
         {
@@ -22,7 +22,7 @@ namespace PiSnoreMonitor.Services
             _serviceProvider = serviceProvider;
         }
 
-        public async Task<IWavRecorder> CreateAsync(CancellationToken cancellationToken = default)
+        public async Task<IWavRecorder> CreateAsync(int deviceId, CancellationToken cancellationToken = default)
         {
             var appSettings = await _appSettingsLoader.LoadAsync(cancellationToken);
             var effectsBus = new EffectsBus();
@@ -44,12 +44,13 @@ namespace PiSnoreMonitor.Services
                 effectsBus.Effects.Add(gainEffect);
             }
 
-            return new WavRecorder(
+            return new PortAudioWavRecorder(
+                deviceId,
                 appSettings.RecordingSampleRate,
                 1,
                 1024,
                 effectsBus.Effects.Count > 0 ? effectsBus : null,
-                _serviceProvider.GetService<ILogger<WavRecorder>>()!);
+                _serviceProvider.GetService<ILogger<PortAudioWavRecorder>>()!);
         }
     }
 }

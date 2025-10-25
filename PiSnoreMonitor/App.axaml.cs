@@ -7,6 +7,7 @@ using PiSnoreMonitor.Configuration;
 using PiSnoreMonitor.Services;
 using PiSnoreMonitor.ViewModels;
 using PiSnoreMonitor.Views;
+using PortAudioSharp;
 using Serilog;
 using System;
 using System.IO;
@@ -61,7 +62,8 @@ namespace PiSnoreMonitor
             services.AddSingleton<IMemoryUsageSampler, HardwareInfoMemoryUsageSampler>();
             services.AddSingleton<ISystemMonitor, SystemMonitor>();
             services.AddSingleton<IStorageService, StorageService>();
-            services.AddSingleton<IWavRecorderFactory, WavRecorderFactory>();
+            services.AddSingleton<IWavRecorderFactory, PortAudioWavRecorderFactory>();
+            services.AddSingleton<IAudioInputDeviceEnumeratorService, PortAudioInputDeviceEnumeratorService>();
             services.AddSingleton<IIoService, IoService>();
             services.AddSingleton<IAppSettingsLoader, AppSettingsLoader>();
 
@@ -77,6 +79,8 @@ namespace PiSnoreMonitor
                 builder.ClearProviders();
                 builder.AddSerilog(Log.Logger);
             });
+
+            PortAudio.Initialize(); // Initialize PortAudio library
         }
     }
 }

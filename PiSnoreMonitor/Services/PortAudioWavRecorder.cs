@@ -14,19 +14,19 @@ using System.Threading.Tasks;
 namespace PiSnoreMonitor.Services
 {
 
-    public class WavRecorder(
+    public class PortAudioWavRecorder(
+        int deviceId,
         int sampleRate,
         int channels,
         uint framesPerBuffer,
         IEffectsBus? effectsBus,
-        ILogger<WavRecorder> logger) : IWavRecorder
+        ILogger<PortAudioWavRecorder> logger) : IWavRecorder
     {
         public event EventHandler<WavRecorderRecordingEventArgs>? WavRecorderRecording;
 
         private PortAudioSharp.Stream? portAudioStream;
         private FileStream? outputFileStream;
         private Task? writerTask;
-        private bool portAudioIsInitialised;
         private volatile bool running;
         private long dataBytes;
         private readonly TimeSpan headerRefreshInterval = TimeSpan.FromSeconds(5);
@@ -42,7 +42,7 @@ namespace PiSnoreMonitor.Services
         private const int RiffSizeOffset = 4;   // 4 bytes, little-endian
         private const int DataSizeOffset = 40;  // 4 bytes, little-endian
 
-        ~WavRecorder()
+        ~PortAudioWavRecorder()
         {
             Dispose(disposing: false);
         }
@@ -52,22 +52,18 @@ namespace PiSnoreMonitor.Services
             CancellationToken cancellationToken = default)
         {
             logger.LogInformation($"WavRecorder:StartRecordingAsync - {filePath}");
-            ObjectDisposedException.ThrowIf(disposed, nameof(WavRecorder));
+            ObjectDisposedException.ThrowIf(disposed, nameof(PortAudioWavRecorder));
 
             if (running)
             {
                 throw new InvalidOperationException("Already recording.");
             }
 
-            PortAudio.Initialize();
-            portAudioIsInitialised = true;
-
-            var inputDevice = PortAudio.DefaultInputDevice;
-            var inputInfo = PortAudio.GetDeviceInfo(inputDevice);
+            var inputInfo = PortAudio.GetDeviceInfo(deviceId);
 
             var inputParams = new StreamParameters
             {
-                device = inputDevice,
+                device = deviceId,
                 channelCount = channels,
                 sampleFormat = SampleFormat.Int16,
                 suggestedLatency = inputInfo.defaultLowInputLatency,
@@ -152,12 +148,13 @@ namespace PiSnoreMonitor.Services
 
             outputFileStream = null;
 
-            if (portAudioIsInitialised)
-            {
-                logger.LogInformation($"WavRecorder:StopRecordingAsync - Shutting down PortAudio.");
-                PortAudio.Terminate();
-                portAudioIsInitialised = false;
-            }
+            // We do not terminate PortAudio here, as it may be used elsewhere in the app.
+            ////if (portAudioIsInitialised)
+            ////{
+            ////    logger.LogInformation($"WavRecorder:StopRecordingAsync - Shutting down PortAudio.");
+            ////    PortAudio.Terminate();
+            ////    portAudioIsInitialised = false;
+            ////}
         }
 
         private StreamCallbackResult OutputStreamCallback(

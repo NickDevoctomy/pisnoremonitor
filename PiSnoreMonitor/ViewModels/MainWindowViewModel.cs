@@ -9,6 +9,7 @@ using PiSnoreMonitor.Configuration;
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Extensions.Logging;
+using System.Collections.ObjectModel;
 
 namespace PiSnoreMonitor.ViewModels
 {
@@ -19,6 +20,7 @@ namespace PiSnoreMonitor.ViewModels
         private readonly ISystemMonitor? _systemMonitor;
         private readonly IStorageService? _storageService;
         private readonly IWavRecorderFactory? _wavRecorderFactory;
+        private readonly IAudioInputDeviceEnumeratorService? _audioInputDeviceEnumerator;
         private IWavRecorder? _wavRecorder;
 
         [ObservableProperty]
@@ -66,6 +68,12 @@ namespace PiSnoreMonitor.ViewModels
         [ObservableProperty]
         private AppSettings? appSettings;
 
+        [ObservableProperty]
+        private ObservableCollection<AudioInputDevice> audioInputDevices = [];
+
+        [ObservableProperty]
+        private int selectedAudioInputDeviceId = 0;
+
         private DateTime _startedRecordingAt;
         private int _updateCounter = 0;
 
@@ -78,13 +86,15 @@ namespace PiSnoreMonitor.ViewModels
             IAppSettingsLoader appSettingsLoader,
             ISystemMonitor systemMonitor,
             IStorageService storageService,
-            IWavRecorderFactory wavRecorderFactory)
+            IWavRecorderFactory wavRecorderFactory,
+            IAudioInputDeviceEnumeratorService audioInputDeviceEnumerator)
         {
             _logger = logger;
             _appSettingsLoader = appSettingsLoader;
             _systemMonitor = systemMonitor;
             _storageService = storageService;
             _wavRecorderFactory = wavRecorderFactory;
+            _audioInputDeviceEnumerator = audioInputDeviceEnumerator;
 
             _logger.LogInformation("MainWindowViewModel initialized");
 
@@ -97,6 +107,15 @@ namespace PiSnoreMonitor.ViewModels
         {
             _logger?.LogInformation("Initializing MainWindowViewModel");
             AppSettings = await _appSettingsLoader!.LoadAsync(cancellationToken);
+
+            var audioInputDevices = _audioInputDeviceEnumerator!.GetAudioInputDeviceNames();
+            foreach(var device in audioInputDevices)
+            {
+                AudioInputDevices.Add(device);
+            }
+
+            SelectedAudioInputDeviceId = PortAudioSharp.PortAudio.DefaultInputDevice;
+
             _logger?.LogInformation("MainWindowViewModel initialization completed");
         }
 
@@ -194,7 +213,7 @@ namespace PiSnoreMonitor.ViewModels
             if (!IsRecording)
             {
                 _logger?.LogInformation("Starting recording");
-                _wavRecorder = await _wavRecorderFactory!.CreateAsync(CancellationToken.None);
+                _wavRecorder = await _wavRecorderFactory!.CreateAsync(SelectedAudioInputDeviceId, CancellationToken.None);
                 _wavRecorder.WavRecorderRecording += WavRecorder_WavRecorderRecording;
 
                 var outputFilePath = string.Empty;

@@ -2,6 +2,7 @@
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:services="using:PiSnoreMonitor.Services"
 		xmlns:vm="using:PiSnoreMonitor.ViewModels"
 		xmlns:controls="using:PiSnoreMonitor.Controls"
 		mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
@@ -9,8 +10,7 @@
 		x:DataType="vm:MainWindowViewModel"
 		Title="PiSnoreMonitor"
 		WindowStartupLocation="CenterScreen"
-		WindowState="FullScreen"
-		Topmost="True">
+		>
 	<Design.DataContext>
 		<vm:MainWindowViewModel/>
 	</Design.DataContext>
@@ -111,7 +111,19 @@
 				<ScrollViewer HorizontalScrollBarVisibility="Hidden"
 							  VerticalScrollBarVisibility="Auto">
 					<StackPanel>
-						<Label Content="EFFECTS BUS" FontWeight="Bold" FontSize="16" />
+						<Label Content="INPUT" FontWeight="Bold" FontSize="16" />
+						<Label Content="🎙️ Selected Audio Input Device" FontWeight="Bold" Margin="8,8,0,0" />
+						<ComboBox Margin="16,0,0,0"
+								  ItemsSource="{Binding AudioInputDevices}"
+								  SelectedIndex="{Binding SelectedAudioInputDeviceId, Mode=TwoWay}">
+							<ComboBox.ItemTemplate>
+								<DataTemplate x:DataType="services:AudioInputDevice">
+									<TextBlock Text="{Binding Name}" />
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+
+						<Label Content="EFFECTS BUS" FontWeight="Bold" FontSize="16" Margin="0,16,0,0" />
 
 						<Label Content="🌈 High Pass Filter" FontWeight="Bold" Margin="8,8,0,0" />
 						<Label Content="Remove low frequency hum from the recording." Margin="16,0,0,0" />
