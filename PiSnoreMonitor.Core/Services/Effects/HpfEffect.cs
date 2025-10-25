@@ -177,9 +177,6 @@ namespace PiSnoreMonitor.Core.Services.Effects
             b2 = (1.0f + cosOmega) / 2.0f / norm;
             a1 = -2.0f * cosOmega / norm;
             a2 = (1.0f - alpha) / norm;
-            
-            Console.WriteLine($"HpfEffect: Cutoff={cutoffFreq}Hz, SampleRate={sampleRate}Hz");
-            Console.WriteLine($"Coefficients: b0={b0:F6}, b1={b1:F6}, b2={b2:F6}, a1={a1:F6}, a2={a2:F6}");
         }
 
         // Reset filter state to prevent artifacts
