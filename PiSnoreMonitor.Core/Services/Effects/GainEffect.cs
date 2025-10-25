@@ -46,23 +46,29 @@ namespace PiSnoreMonitor.Core.Services.Effects
                     short* outputSamples = (short*)outputPtr;
                     
                     int sampleCount = length / 2; // 16-bit = 2 bytes per sample
+                    float gain = gainParameter.AsFloatParameter()!.Value;
                     
+                    // Apply the same gain to all samples regardless of channel count
+                    // For stereo, this means both left and right channels get the same gain
                     for (int i = 0; i < sampleCount; i++)
                     {
-                        float processedSample = inputSamples[i] * gainParameter.AsFloatParameter()!.Value;
-                        
-                        // Clamp to 16-bit range to prevent overflow
-                        if (processedSample > 32767.0f)
-                            processedSample = 32767.0f;
-                        else if (processedSample < -32768.0f)
-                            processedSample = -32768.0f;
-                        
-                        outputSamples[i] = (short)processedSample;
+                        float processedSample = inputSamples[i] * gain;
+                        outputSamples[i] = ClampToInt16(processedSample);
                     }
                 }
             }
             
             return output;
+        }
+
+        private static short ClampToInt16(float value)
+        {
+            if (value > 32767.0f)
+                return 32767;
+            else if (value < -32768.0f)
+                return -32768;
+            else
+                return (short)value;
         }
     }
 }

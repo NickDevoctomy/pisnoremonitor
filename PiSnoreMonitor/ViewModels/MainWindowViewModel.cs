@@ -230,7 +230,7 @@ namespace PiSnoreMonitor.ViewModels
             }
 
             _logger?.LogInformation("Saving application settings.");
-            await _appSettingsLoader!.SaveAsync(AppSettings!, CancellationToken.None);
+            await _appSettingsLoader!.SaveAsync(CancellationToken.None);
 
             _logger?.LogInformation("Exiting.");
             Environment.Exit(0);
