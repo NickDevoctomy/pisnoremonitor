@@ -8,8 +8,11 @@ namespace PiSnoreMonitor.Core.Services.Effects
         private readonly FloatParameter cutoffFrequencyParameter;
         private readonly IntParameter sampleRate;
         
-        private float x1 = 0.0f, x2 = 0.0f; // Previous input samples
-        private float y1 = 0.0f, y2 = 0.0f; // Previous output samples
+        // Filter state per channel (supports up to 2 channels)
+        private float[] x1 = new float[2]; // Previous input samples per channel
+        private float[] x2 = new float[2]; // Previous input samples per channel
+        private float[] y1 = new float[2]; // Previous output samples per channel
+        private float[] y2 = new float[2]; // Previous output samples per channel
         private float b0, b1, b2, a1, a2; // Biquad coefficients
 
         public HpfEffect()
@@ -77,37 +80,70 @@ namespace PiSnoreMonitor.Core.Services.Effects
                     
                     int sampleCount = length / 2; // 16-bit = 2 bytes per sample
                     
-                    for (int i = 0; i < sampleCount; i++)
+                    if (channels == 1)
                     {
-                        // Convert to float for processing (-1.0 to 1.0 range)
-                        float inputSample = inputSamples[i] / 32768.0f;
-                        float inputAbs = Math.Abs(inputSample);
-                        
-                        
-                        // Apply biquad high-pass filter
-                        // y[n] = b0*x[n] + b1*x[n-1] + b2*x[n-2] - a1*y[n-1] - a2*y[n-2]
-                        float filteredSample = b0 * inputSample + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
-                        
-                        // Update filter state
-                        x2 = x1;
-                        x1 = inputSample;
-                        y2 = y1;
-                        y1 = filteredSample;
-                        
-                        // Convert back to 16-bit integer with proper clamping
-                        float scaledSample = filteredSample * 32768.0f;
-                        
-                        if (scaledSample > 32767.0f)
-                            scaledSample = 32767.0f;
-                        else if (scaledSample < -32768.0f)
-                            scaledSample = -32768.0f;
-                        
-                        outputSamples[i] = (short)Math.Round(scaledSample);
+                        // Mono processing - use channel 0 filter state
+                        for (int i = 0; i < sampleCount; i++)
+                        {
+                            outputSamples[i] = ProcessSample(inputSamples[i], 0);
+                        }
+                    }
+                    else if (channels == 2)
+                    {
+                        // Stereo processing - interleaved L, R, L, R, ...
+                        for (int i = 0; i < sampleCount; i += 2)
+                        {
+                            // Left channel (even indices) - use channel 0 filter state
+                            if (i < sampleCount)
+                            {
+                                outputSamples[i] = ProcessSample(inputSamples[i], 0);
+                            }
+                            
+                            // Right channel (odd indices) - use channel 1 filter state
+                            if (i + 1 < sampleCount)
+                            {
+                                outputSamples[i + 1] = ProcessSample(inputSamples[i + 1], 1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Fallback for unsupported channel counts - use channel 0 filter state
+                        for (int i = 0; i < sampleCount; i++)
+                        {
+                            outputSamples[i] = ProcessSample(inputSamples[i], 0);
+                        }
                     }
                 }
             }
             
             return output;
+        }
+
+        private short ProcessSample(short inputSample, int channel)
+        {
+            // Convert to float for processing (-1.0 to 1.0 range)
+            float inputFloat = inputSample / 32768.0f;
+            
+            // Apply biquad high-pass filter
+            // y[n] = b0*x[n] + b1*x[n-1] + b2*x[n-2] - a1*y[n-1] - a2*y[n-2]
+            float filteredSample = b0 * inputFloat + b1 * x1[channel] + b2 * x2[channel] - a1 * y1[channel] - a2 * y2[channel];
+            
+            // Update filter state for this channel
+            x2[channel] = x1[channel];
+            x1[channel] = inputFloat;
+            y2[channel] = y1[channel];
+            y1[channel] = filteredSample;
+            
+            // Convert back to 16-bit integer with proper clamping
+            float scaledSample = filteredSample * 32768.0f;
+            
+            if (scaledSample > 32767.0f)
+                scaledSample = 32767.0f;
+            else if (scaledSample < -32768.0f)
+                scaledSample = -32768.0f;
+            
+            return (short)Math.Round(scaledSample);
         }
 
         private void CalculateFilterCoefficient()
@@ -149,8 +185,11 @@ namespace PiSnoreMonitor.Core.Services.Effects
         // Reset filter state to prevent artifacts
         private void ResetFilterState()
         {
-            x1 = x2 = 0.0f;
-            y1 = y2 = 0.0f;
+            for (int i = 0; i < x1.Length; i++)
+            {
+                x1[i] = x2[i] = 0.0f;
+                y1[i] = y2[i] = 0.0f;
+            }
         }
     }
 }
