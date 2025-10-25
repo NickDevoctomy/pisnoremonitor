@@ -120,24 +120,10 @@ namespace PiSnoreMonitor.Controls
 
         private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
         {
-            ////// Update max samples based on width (one sample per 2 pixels for smooth scrolling)
-            ////_maxSamples = Math.Max(50, (int)(e.NewSize.Width / 2));
-
             // Update center line
             var centerY = e.NewSize.Height / 2;
             _centerLine.StartPoint = new Point(0, centerY);
             _centerLine.EndPoint = new Point(e.NewSize.Width, centerY);
-
-            ////lock (_lock)
-            ////{
-            ////    // Trim samples if needed
-            ////    while (_samples.Count > _maxSamples)
-            ////    {
-            ////        _samples.RemoveAt(0);
-            ////    }
-
-            ////    RedrawDisplay();
-            ////}
         }
 
         private void RedrawDisplay()

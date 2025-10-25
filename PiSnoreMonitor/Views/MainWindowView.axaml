@@ -53,13 +53,13 @@
 						<ColumnDefinition Width="*" />
 					</Grid.ColumnDefinitions>
 					<Grid.RowDefinitions>
-						<RowDefinition Height="100" />
+						<RowDefinition Height="64" />
 						<RowDefinition Height="*" />
 						<RowDefinition Height="{Binding StatusRowGridHeight}" />
 					</Grid.RowDefinitions>
 
 					<controls:StereoAmplitudeDisplay HorizontalAlignment="Stretch"
-													 VerticalAlignment="Stretch"
+													 VerticalAlignment="Top"
 													 Margin="8"
 													 LeftChannelBrush="CornflowerBlue"
 													 RightChannelBrush="LimeGreen"
