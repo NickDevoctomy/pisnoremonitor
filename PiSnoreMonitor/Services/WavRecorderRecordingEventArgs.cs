@@ -3,8 +3,8 @@ using System;
 
 namespace PiSnoreMonitor.Services
 {
-    public class WavRecorderRecordingEventArgs : EventArgs
+    public class WavRecorderRecordingEventArgs(PooledBlock currentBlock) : EventArgs
     {
-        public PooledBlock? CurrentBlock { get; set; }
+        public PooledBlock CurrentBlock { get; init; } = currentBlock;
     }
 }

@@ -205,11 +205,7 @@ namespace PiSnoreMonitor.Services
                     while (channel.Reader.TryRead(out var block))
                     {
                         var processedBlock = effectsBus?.Process(block, block.Count) ?? block;
-
-                        WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs
-                        {
-                            CurrentBlock = processedBlock
-                        });
+                        WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs(processedBlock));
 
                         try
                         {
