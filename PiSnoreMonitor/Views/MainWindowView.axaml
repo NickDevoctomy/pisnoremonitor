@@ -112,6 +112,7 @@
 							  VerticalScrollBarVisibility="Auto">
 					<StackPanel>
 						<Label Content="INPUT" FontWeight="Bold" FontSize="16" />
+
 						<Label Content="🎙️ Selected Audio Input Device" FontWeight="Bold" Margin="8,8,0,0" />
 						<ComboBox Margin="16,0,0,0"
 								  ItemsSource="{Binding AudioInputDevices}"
@@ -122,6 +123,9 @@
 								</DataTemplate>
 							</ComboBox.ItemTemplate>
 						</ComboBox>
+						<Label Content="Enable stereo recording if available (Will mix down to Mono)." Margin="16,0,0,0" />
+						<ToggleSwitch Margin="16,0,0,0" IsChecked="{Binding AppSettings.EnableStereoRecording, Mode=TwoWay}" ></ToggleSwitch>
+
 
 						<Label Content="EFFECTS BUS" FontWeight="Bold" FontSize="16" Margin="0,16,0,0" />
 

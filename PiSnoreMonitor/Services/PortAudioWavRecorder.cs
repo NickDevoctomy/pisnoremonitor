@@ -61,6 +61,11 @@ namespace PiSnoreMonitor.Services
 
             var inputInfo = PortAudio.GetDeviceInfo(deviceId);
 
+            if(inputInfo.maxInputChannels < channels)
+            {
+                channels = inputInfo.maxInputChannels;
+            }
+
             var inputParams = new StreamParameters
             {
                 device = deviceId,

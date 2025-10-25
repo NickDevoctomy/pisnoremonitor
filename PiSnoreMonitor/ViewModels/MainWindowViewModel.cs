@@ -124,6 +124,11 @@ namespace PiSnoreMonitor.ViewModels
         public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
             _logger?.LogInformation("Initializing MainWindowViewModel");
+            if(_appSettingsLoader == null)
+            {
+                return;
+            }
+
             AppSettings = await _appSettingsLoader!.LoadAsync(cancellationToken);
 
             var audioInputDevices = _audioInputDeviceEnumerator!.GetAudioInputDeviceNames();
@@ -237,7 +242,8 @@ namespace PiSnoreMonitor.ViewModels
             if (!IsRecording)
             {
                 _logger?.LogInformation("Starting recording");
-                _wavRecorder = await _wavRecorderFactory!.CreateAsync(SelectedAudioInputDeviceId, CancellationToken.None);
+
+                _wavRecorder = await _wavRecorderFactory!.CreateAsync(SelectedAudioInputDeviceId, AppSettings!.EnableStereoRecording, CancellationToken.None);
                 _wavRecorder.WavRecorderRecording += WavRecorder_WavRecorderRecording;
 
                 var outputFilePath = string.Empty;

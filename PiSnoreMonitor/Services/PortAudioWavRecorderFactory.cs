@@ -22,7 +22,7 @@ namespace PiSnoreMonitor.Services
             _serviceProvider = serviceProvider;
         }
 
-        public async Task<IWavRecorder> CreateAsync(int deviceId, CancellationToken cancellationToken = default)
+        public async Task<IWavRecorder> CreateAsync(int deviceId, bool stereo, CancellationToken cancellationToken = default)
         {
             var appSettings = await _appSettingsLoader.LoadAsync(cancellationToken);
             var effectsBus = new EffectsBus();
@@ -47,7 +47,7 @@ namespace PiSnoreMonitor.Services
             return new PortAudioWavRecorder(
                 deviceId,
                 appSettings.RecordingSampleRate,
-                1,
+                stereo ? 2 : 1,
                 1024,
                 effectsBus.Effects.Count > 0 ? effectsBus : null,
                 _serviceProvider.GetService<ILogger<PortAudioWavRecorder>>()!);
