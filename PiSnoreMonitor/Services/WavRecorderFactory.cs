@@ -24,16 +24,14 @@ namespace PiSnoreMonitor.Services
 
         public async Task<IWavRecorder> CreateAsync(CancellationToken cancellationToken = default)
         {
-            const int sampleRate = 44100;
             var appSettings = await _appSettingsLoader.LoadAsync(cancellationToken);
-
             var effectsBus = new EffectsBus();
 
             if (appSettings.EnableHpfEffect)
             {
                 var hpfEffect = new HpfEffect();
                 var cutoffParam = new FloatParameter("CutoffFrequency", appSettings.HpfEffectCutoffFrequency);
-                var sampleRateParam = new FloatParameter("SampleRate", sampleRate);
+                var sampleRateParam = new FloatParameter("SampleRate", appSettings.RecordingSampleRate);
                 hpfEffect.SetParameters(cutoffParam, sampleRateParam);
                 effectsBus.Effects.Add(hpfEffect);
             }
@@ -47,7 +45,7 @@ namespace PiSnoreMonitor.Services
             }
 
             return new WavRecorder(
-                sampleRate,
+                appSettings.RecordingSampleRate,
                 1,
                 1024,
                 effectsBus.Effects.Count > 0 ? effectsBus : null,
