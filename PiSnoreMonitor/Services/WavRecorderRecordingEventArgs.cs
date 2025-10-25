@@ -1,9 +1,10 @@
-﻿using System;
+﻿using PiSnoreMonitor.Core.Data;
+using System;
 
 namespace PiSnoreMonitor.Services
 {
     public class WavRecorderRecordingEventArgs : EventArgs
     {
-        public float Amplitude { get; set; }
+        public PooledBlock CurrentBlock { get; set; }
     }
 }

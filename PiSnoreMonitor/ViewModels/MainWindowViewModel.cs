@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using PiSnoreMonitor.Extensions;
 
 namespace PiSnoreMonitor.ViewModels
 {
@@ -103,18 +106,35 @@ namespace PiSnoreMonitor.ViewModels
             _systemMonitor.StartMonitoring();
         }
 
+        protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+
+            switch (e.PropertyName)
+            {
+                case nameof(SelectedAudioInputDeviceId):
+                    {
+                        var selectedAudioInputDeviceName = AudioInputDevices.Single(x => x.Id == SelectedAudioInputDeviceId);
+                        AppSettings!.SelectedAudioInputDeviceName = selectedAudioInputDeviceName.Name;
+                        break;
+                    }
+            }
+        }
+
         public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
             _logger?.LogInformation("Initializing MainWindowViewModel");
             AppSettings = await _appSettingsLoader!.LoadAsync(cancellationToken);
 
             var audioInputDevices = _audioInputDeviceEnumerator!.GetAudioInputDeviceNames();
-            foreach(var device in audioInputDevices)
+            foreach (var device in audioInputDevices.DistinctBy(x => x.Name))
             {
                 AudioInputDevices.Add(device);
             }
 
-            SelectedAudioInputDeviceId = PortAudioSharp.PortAudio.DefaultInputDevice;
+            var selectedAudioInputDeviceName = AppSettings.SelectedAudioInputDeviceName;
+            var selectedDevice = AudioInputDevices.SingleOrDefault(x => x.Name == selectedAudioInputDeviceName);
+            SelectedAudioInputDeviceId = selectedDevice?.Id ?? PortAudioSharp.PortAudio.DefaultInputDevice;
 
             _logger?.LogInformation("MainWindowViewModel initialization completed");
         }
@@ -133,7 +153,7 @@ namespace PiSnoreMonitor.ViewModels
             _updateCounter++;
             if (_updateCounter % 10 == 0)
             {
-                Amplitude = e.Amplitude * 100;
+                Amplitude = e.CurrentBlock.CalculateAmplitude(0) * 100;
                 UpdateElapsedRecordingTime();
             }
         }

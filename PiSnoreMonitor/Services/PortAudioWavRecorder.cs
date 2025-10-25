@@ -206,11 +206,9 @@ namespace PiSnoreMonitor.Services
                     {
                         var processedBlock = effectsBus?.Process(block, block.Count) ?? block;
 
-                        float amplitude = processedBlock.CalculateAmplitude(0);
-                        System.Diagnostics.Debug.WriteLine($"Firing event with amplitude: {amplitude:F3}");
                         WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs
                         {
-                            Amplitude = amplitude
+                            CurrentBlock = processedBlock
                         });
 
                         try
