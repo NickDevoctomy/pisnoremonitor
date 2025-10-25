@@ -1,18 +1,19 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+﻿using Avalonia.Controls;
 using Avalonia.Media;
-using PiSnoreMonitor.Services;
-using Avalonia.Controls;
-using System;
-using System.IO;
-using PiSnoreMonitor.Configuration;
-using System.Threading.Tasks;
-using System.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using PiSnoreMonitor.Configuration;
+using PiSnoreMonitor.Controls;
+using PiSnoreMonitor.Extensions;
+using PiSnoreMonitor.Services;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
-using PiSnoreMonitor.Extensions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PiSnoreMonitor.ViewModels
 {
@@ -76,6 +77,9 @@ namespace PiSnoreMonitor.ViewModels
 
         [ObservableProperty]
         private int selectedAudioInputDeviceId = 0;
+
+        [ObservableProperty]
+        private StereoAmplitudeDisplay? stereoAmplitudeDisplay;
 
         private DateTime _startedRecordingAt;
         private int _updateCounter = 0;
@@ -161,10 +165,14 @@ namespace PiSnoreMonitor.ViewModels
             {
                 int channels = AppSettings?.EnableStereoRecording == true ? 2 : 1;
                 var (leftAmplitude, rightAmplitude) = e.CurrentBlock.CalculateAmplitude(0, channels);
-                
+
                 // For now, use the maximum of left and right for backward compatibility
                 // In the future, you might want to use both values separately
                 Amplitude = Math.Max(leftAmplitude, rightAmplitude) * 100;
+
+                // Push amplitude values to the StereoAmplitudeDisplay
+                StereoAmplitudeDisplay?.PushSample(leftAmplitude, rightAmplitude);
+
                 UpdateElapsedRecordingTime();
             }
         }
@@ -287,6 +295,9 @@ namespace PiSnoreMonitor.ViewModels
                 UpdateStartedRecordingTime();
                 UpdateElapsedRecordingTime();
                 Amplitude = 0;
+
+                // Clear the stereo amplitude display
+                StereoAmplitudeDisplay?.Clear();
 
                 _wavRecorder.WavRecorderRecording -= WavRecorder_WavRecorderRecording;
                 _wavRecorder.Dispose();

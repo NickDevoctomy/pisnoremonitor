@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PiSnoreMonitor.Controls.StereoAmplitudeDisplay"
+             MinWidth="400"
+             MinHeight="200">
+  <Border BorderBrush="Gray" BorderThickness="1">
+    <Canvas Name="DisplayCanvas" ClipToBounds="True">
+      <Line Name="CenterLine" 
+            StartPoint="0,100" 
+            EndPoint="400,100" 
+            Stroke="Red" 
+            StrokeThickness="2" />
+    </Canvas>
+  </Border>
+</UserControl>

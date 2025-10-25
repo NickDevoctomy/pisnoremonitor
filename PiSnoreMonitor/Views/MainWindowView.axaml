@@ -9,9 +9,7 @@
 		x:Class="PiSnoreMonitor.Views.MainWindowView"
 		x:DataType="vm:MainWindowViewModel"
 		Title="PiSnoreMonitor"
-		WindowStartupLocation="CenterScreen"
-		WindowState="FullScreen"
-		Topmost="True">
+		WindowStartupLocation="CenterScreen">
 	<Design.DataContext>
 		<vm:MainWindowViewModel/>
 	</Design.DataContext>
@@ -52,29 +50,24 @@
 			<TabItem Header="Record" FontSize="13">
 				<Grid>
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="48" />
 						<ColumnDefinition Width="*" />
 					</Grid.ColumnDefinitions>
 					<Grid.RowDefinitions>
+						<RowDefinition Height="100" />
 						<RowDefinition Height="*" />
 						<RowDefinition Height="{Binding StatusRowGridHeight}" />
 					</Grid.RowDefinitions>
 
-					<controls:LevelMeter HorizontalAlignment="Stretch"
-										 VerticalAlignment="Stretch"
-										 Margin="8"
-										 Minimum="0"
-										 Maximum="100"
-										 LevelMarkerThickness="4"
-										 Value="{Binding Amplitude}">
-						<controls:LevelMeter.TrackBrush>
-							<LinearGradientBrush StartPoint="0,0" EndPoint="0%,100%">
-								<GradientStop Color="Red" Offset="0.0"/>
-								<GradientStop Color="Orange" Offset="0.5"/>
-								<GradientStop Color="Green" Offset="1.0"/>
-							</LinearGradientBrush>
-						</controls:LevelMeter.TrackBrush>
-					</controls:LevelMeter>
+					<controls:StereoAmplitudeDisplay HorizontalAlignment="Stretch"
+													 VerticalAlignment="Stretch"
+													 Margin="8"
+													 LeftChannelBrush="CornflowerBlue"
+													 RightChannelBrush="LimeGreen"
+													 AmplitudeScale="1.5"
+													 MaxSamples="100"
+													 Grid.Row="0"
+													 x:Name="StereoAmplitudeDisplayControl">
+					</controls:StereoAmplitudeDisplay>
 
 					<Button HorizontalAlignment="Center"
 							Background="{Binding ButtonBackground}"
@@ -82,12 +75,11 @@
 							Command="{Binding ToggleRecordingCommand}"
 							HorizontalContentAlignment="Center"
 							VerticalContentAlignment="Center"
-							Grid.Column="1"
+							Grid.Row="1"
 							Width="150"
 							Height="100"/>
 
-					<Panel Grid.Row="1"
-						   Grid.ColumnSpan="2"
+					<Panel Grid.Row="2"
 						   Background="DarkGray"
 						   Margin="8">
 						<Grid VerticalAlignment="Center">

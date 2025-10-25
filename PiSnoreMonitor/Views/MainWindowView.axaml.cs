@@ -28,6 +28,10 @@ namespace PiSnoreMonitor.Views
 
             if (DataContext is MainWindowViewModel vm)
             {
+                // Bind the StereoAmplitudeDisplay control to the ViewModel
+                var stereoDisplay = this.FindControl<Controls.StereoAmplitudeDisplay>("StereoAmplitudeDisplayControl");
+                vm.StereoAmplitudeDisplay = stereoDisplay;
+
                 try { await vm.InitializeAsync(_loadCts.Token); }
                 catch (OperationCanceledException) { }
             }
