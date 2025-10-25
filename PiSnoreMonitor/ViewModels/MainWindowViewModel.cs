@@ -159,7 +159,12 @@ namespace PiSnoreMonitor.ViewModels
             _updateCounter++;
             if (_updateCounter % 10 == 0)
             {
-                Amplitude = e.CurrentBlock.CalculateAmplitude(0) * 100;
+                int channels = AppSettings?.EnableStereoRecording == true ? 2 : 1;
+                var (leftAmplitude, rightAmplitude) = e.CurrentBlock.CalculateAmplitude(0, channels);
+                
+                // For now, use the maximum of left and right for backward compatibility
+                // In the future, you might want to use both values separately
+                Amplitude = Math.Max(leftAmplitude, rightAmplitude) * 100;
                 UpdateElapsedRecordingTime();
             }
         }

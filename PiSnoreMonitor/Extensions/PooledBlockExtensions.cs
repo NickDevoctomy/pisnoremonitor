@@ -5,33 +5,105 @@ namespace PiSnoreMonitor.Extensions
 {
     public static class PooledBlockExtensions
     {
-        public static float CalculateAmplitude(this PooledBlock block, double maximumDbLevel)
+        public static (float Left, float Right) CalculateAmplitude(this PooledBlock block, double maximumDbLevel, int channels)
         {
             if (block.Buffer == null || block.Count == 0)
             {
-                return 0.0f;
+                return (0.0f, 0.0f);
             }
 
             int sampleCount = block.Count / 2;
-            if (sampleCount == 0) return 0.0f;
+            if (sampleCount == 0) return (0.0f, 0.0f);
 
-            double sum = 0;
-
-            unsafe
+            if (channels == 1)
             {
-                fixed (byte* bufferPtr = block.Buffer)
-                {
-                    short* samples = (short*)bufferPtr;
+                // Mono - calculate single amplitude and return it for both left and right
+                double sum = 0;
 
-                    for (int i = 0; i < sampleCount; i++)
+                unsafe
+                {
+                    fixed (byte* bufferPtr = block.Buffer)
                     {
-                        short sample = samples[i];
-                        sum += (double)sample * sample;
+                        short* samples = (short*)bufferPtr;
+
+                        for (int i = 0; i < sampleCount; i++)
+                        {
+                            short sample = samples[i];
+                            sum += (double)sample * sample;
+                        }
                     }
                 }
-            }
 
-            double rms = Math.Sqrt(sum / sampleCount);
+                float amplitude = CalculateAmplitudeFromRms(sum, sampleCount, maximumDbLevel);
+                return (amplitude, amplitude);
+            }
+            else if (channels == 2)
+            {
+                // Stereo - calculate separate amplitudes for left and right channels
+                double leftSum = 0;
+                double rightSum = 0;
+                int leftSamples = 0;
+                int rightSamples = 0;
+
+                unsafe
+                {
+                    fixed (byte* bufferPtr = block.Buffer)
+                    {
+                        short* samples = (short*)bufferPtr;
+
+                        for (int i = 0; i < sampleCount; i += 2)
+                        {
+                            // Left channel (even indices)
+                            if (i < sampleCount)
+                            {
+                                short leftSample = samples[i];
+                                leftSum += (double)leftSample * leftSample;
+                                leftSamples++;
+                            }
+                            
+                            // Right channel (odd indices)
+                            if (i + 1 < sampleCount)
+                            {
+                                short rightSample = samples[i + 1];
+                                rightSum += (double)rightSample * rightSample;
+                                rightSamples++;
+                            }
+                        }
+                    }
+                }
+
+                float leftAmplitude = leftSamples > 0 ? CalculateAmplitudeFromRms(leftSum, leftSamples, maximumDbLevel) : 0.0f;
+                float rightAmplitude = rightSamples > 0 ? CalculateAmplitudeFromRms(rightSum, rightSamples, maximumDbLevel) : 0.0f;
+                
+                return (leftAmplitude, rightAmplitude);
+            }
+            else
+            {
+                // Fallback for unsupported channel counts - treat as mono
+                double sum = 0;
+
+                unsafe
+                {
+                    fixed (byte* bufferPtr = block.Buffer)
+                    {
+                        short* samples = (short*)bufferPtr;
+
+                        for (int i = 0; i < sampleCount; i++)
+                        {
+                            short sample = samples[i];
+                            sum += (double)sample * sample;
+                        }
+                    }
+                }
+
+                float amplitude = CalculateAmplitudeFromRms(sum, sampleCount, maximumDbLevel);
+                return (amplitude, amplitude);
+            }
+        }
+
+        private static float CalculateAmplitudeFromRms(double sumOfSquares, int sampleCount, double maximumDbLevel)
+        {
+            double rms = Math.Sqrt(sumOfSquares / sampleCount);
             double rmsNormalized = rms / 32767.0;
 
             // Convert to dB: 20 * log10(rmsNormalized)
