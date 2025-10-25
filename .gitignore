@@ -56,6 +56,12 @@ nunit-*.xml
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 
+# NCrunch
+_NCrunch_*
+.NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+
 *.wav
-.NCrunch_PiSnoreMonitor/
 *.tmp

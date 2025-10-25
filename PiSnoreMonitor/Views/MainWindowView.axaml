@@ -64,9 +64,9 @@
 													 VerticalAlignment="Top"
 													 Margin="8"
 													 LeftChannelBrush="CornflowerBlue"
-													 RightChannelBrush="LimeGreen"
+													 RightChannelBrush="OrangeRed"
 													 AmplitudeScale="1.5"
-													 MaxSamples="100"
+													 SampleBarWidth="8"
 													 Grid.Row="0"
 													 x:Name="StereoAmplitudeDisplayControl">
 					</controls:StereoAmplitudeDisplay>

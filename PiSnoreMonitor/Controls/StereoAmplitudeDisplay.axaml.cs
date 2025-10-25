@@ -53,19 +53,19 @@ namespace PiSnoreMonitor.Controls
             set => SetValue(AmplitudeScaleProperty, value);
         }
 
-        public static readonly StyledProperty<int> MaxSamplesProperty =
-            AvaloniaProperty.Register<StereoAmplitudeDisplay, int>(nameof(MaxSamples), 100, coerce: CoerceMaxSamples);
+        public static readonly StyledProperty<int> SampleBarWidthProperty =
+            AvaloniaProperty.Register<StereoAmplitudeDisplay, int>(nameof(SampleBarWidth), 8, coerce: CoerceSampleBarWidth);
 
-        public int MaxSamples
+        public int SampleBarWidth
         {
-            get => GetValue(MaxSamplesProperty);
-            set => SetValue(MaxSamplesProperty, value);
+            get => GetValue(SampleBarWidthProperty);
+            set => SetValue(SampleBarWidthProperty, value);
         }
 
-        private static int CoerceMaxSamples(AvaloniaObject instance, int value)
+        private static int CoerceSampleBarWidth(AvaloniaObject instance, int value)
         {
-            // Ensure MaxSamples is at least 10 and at most 1000
-            return Math.Max(10, Math.Min(1000, value));
+            // Ensure SampleBarWidth is at least 2 and at most 50
+            return Math.Max(2, Math.Min(50, value));
         }
 
         public void Clear()
@@ -108,10 +108,16 @@ namespace PiSnoreMonitor.Controls
                 // Add new sample
                 _samples.Add((left, right));
                 
-                // Remove old samples if we exceed the maximum
-                while (_samples.Count > MaxSamples)
+                // Calculate max samples based on current canvas width and bar width
+                var canvasWidth = _displayCanvas?.Bounds.Width ?? 0;
+                if (canvasWidth > 0)
                 {
-                    _samples.RemoveAt(0);
+                    var maxSamples = CalculateMaxSamples(canvasWidth);
+                    // Remove old samples if we exceed the maximum
+                    while (_samples.Count > maxSamples)
+                    {
+                        _samples.RemoveAt(0);
+                    }
                 }
                 
                 RedrawDisplay();
@@ -124,6 +130,19 @@ namespace PiSnoreMonitor.Controls
             var centerY = e.NewSize.Height / 2;
             _centerLine.StartPoint = new Point(0, centerY);
             _centerLine.EndPoint = new Point(e.NewSize.Width, centerY);
+        }
+
+        private int CalculateMaxSamples(double canvasWidth)
+        {
+            if (canvasWidth <= 0) return 0;
+            
+            const int gapWidth = 1;
+            var barWidth = SampleBarWidth;
+            var barWithGap = barWidth + gapWidth;
+            
+            // Calculate how many bars fit, accounting for no gap after the last bar
+            var maxSamples = (int)((canvasWidth + gapWidth) / barWithGap);
+            return Math.Max(0, maxSamples);
         }
 
         private void RedrawDisplay()
@@ -148,19 +167,27 @@ namespace PiSnoreMonitor.Controls
             
             if (width <= 0 || height <= 0) return;
 
-            // Calculate spacing using integer math to avoid sub-pixel issues
+            // Calculate layout with fixed bar width
             const int gapWidth = 1;
-            var totalGapWidth = (MaxSamples - 1) * gapWidth;
-            var availableBarWidth = (int)width - totalGapWidth;
-            var barWidth = Math.Max(1, availableBarWidth / MaxSamples);
-            var barSpacing = barWidth + gapWidth;
+            var barWidth = SampleBarWidth;
+            var maxSamples = CalculateMaxSamples(width);
+            
+            if (maxSamples == 0) return;
+            
+            // Calculate total width needed for all bars and gaps
+            var totalBarsWidth = maxSamples * barWidth;
+            var totalGapsWidth = (maxSamples - 1) * gapWidth;
+            var totalNeededWidth = totalBarsWidth + totalGapsWidth;
+            
+            // Calculate left margin (leftover space goes to the left)
+            var leftMargin = (int)width - totalNeededWidth;
             
             for (int i = 0; i < _samples.Count; i++)
             {
                 var sample = _samples[i];
-                // Position from right to left, with proper spacing using integer math
+                // Position from right to left (newest samples on the right)
                 var barIndex = _samples.Count - i - 1;
-                var x = (int)width - (barIndex * barSpacing) - barWidth;
+                var x = (int)width - leftMargin - (barIndex * (barWidth + gapWidth)) - barWidth;
                 
                 // Clamp amplitudes to 0-1 range
                 var leftAmp = Math.Max(0, Math.Min(1, sample.Left));
