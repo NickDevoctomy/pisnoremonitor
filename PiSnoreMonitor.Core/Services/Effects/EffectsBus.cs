@@ -8,7 +8,8 @@ namespace PiSnoreMonitor.Core.Services.Effects
 
         public PooledBlock Process(
             PooledBlock block,
-            int length)
+            int length,
+            int channels)
         {
             if(Effects.Count == 0)
             {
@@ -18,7 +19,7 @@ namespace PiSnoreMonitor.Core.Services.Effects
             var processedBuffer = block.Buffer;
             for (var i = 0; i < Effects.Count; i++)
             {
-                processedBuffer = Effects[i].Process(processedBuffer, length);
+                processedBuffer = Effects[i].Process(processedBuffer, length, channels);
             }
 
             return new PooledBlock

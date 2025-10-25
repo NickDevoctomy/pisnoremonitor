@@ -27,7 +27,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             
             // Act
             // Process the audio data through the HpfEffect
-            var processedData = sut.Process(wavData.AudioData, wavData.AudioData.Length);
+            var processedData = sut.Process(wavData.AudioData, wavData.AudioData.Length, wavData.Channels);
             
             // Create output WAV with same format but processed audio data
             var outputWavData = new WavData
@@ -92,7 +92,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             };
 
             // Process the audio data through the EffectsBus
-            var processedBlock = sut.Process(inputBlock, wavData.AudioData.Length);
+            var processedBlock = sut.Process(inputBlock, wavData.AudioData.Length, wavData.Channels);
 
             // Create output WAV with same format but processed audio data
             var outputWavData = new WavData

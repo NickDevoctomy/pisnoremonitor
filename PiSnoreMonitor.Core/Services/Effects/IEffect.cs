@@ -10,6 +10,7 @@ namespace PiSnoreMonitor.Core.Services.Effects
 
         public byte[] Process(
             byte[] block,
-            int length);
+            int length,
+            int channels);
     }
 }

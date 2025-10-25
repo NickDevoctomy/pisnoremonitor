@@ -58,7 +58,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             var input = new byte[10];
 
             // Act
-            var result = effect.Process(input, 0);
+            var result = effect.Process(input, 0, 1);
 
             // Assert
             Assert.Same(input, result);
@@ -75,7 +75,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             var input = CreateSineWaveSignal(1000, 44100, 440.0, 0.5);
 
             // Act
-            var result = effect.Process(input, input.Length);
+            var result = effect.Process(input, input.Length, 1);
 
             // Assert
             Assert.Equal(input.Length, result.Length);
@@ -93,7 +93,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             var input = CreateSineWaveSignal(1000, 44100, 440.0, 0.25); // Quarter amplitude to avoid clipping
 
             // Act
-            var result = effect.Process(input, input.Length);
+            var result = effect.Process(input, input.Length, 1);
 
             // Assert
             Assert.Equal(input.Length, result.Length);
@@ -126,7 +126,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             var input = CreateSineWaveSignal(1000, 44100, 440.0, 1.0);
 
             // Act
-            var result = effect.Process(input, input.Length);
+            var result = effect.Process(input, input.Length, 1);
 
             // Assert
             Assert.Equal(input.Length, result.Length);
@@ -159,7 +159,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             var input = CreateSineWaveSignal(1000, 44100, 440.0, 1.0);
 
             // Act
-            var result = effect.Process(input, input.Length);
+            var result = effect.Process(input, input.Length, 1);
 
             // Assert
             Assert.Equal(input.Length, result.Length);
@@ -190,7 +190,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             var input = CreateSineWaveSignal(1000, 44100, 440.0, 0.5);
 
             // Act
-            var result = effect.Process(input, input.Length);
+            var result = effect.Process(input, input.Length, 1);
 
             // Assert
             Assert.Equal(input.Length, result.Length);
@@ -235,7 +235,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             }
 
             // Act
-            var result = effect.Process(input, input.Length);
+            var result = effect.Process(input, input.Length, 1);
 
             // Assert
             unsafe
@@ -276,7 +276,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             }
 
             // Act
-            var result = effect.Process(input, input.Length);
+            var result = effect.Process(input, input.Length, 1);
 
             // Assert
             unsafe
@@ -304,14 +304,14 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             // Act & Assert - First gain
             var gain1Param = new FloatParameter("Gain", 2.0f);
             effect.SetParameters(gain1Param);
-            var result1 = effect.Process(input, input.Length);
+            var result1 = effect.Process(input, input.Length, 1);
             
             Assert.Equal(2.0f, effect.GetParameters()[0].AsFloatParameter()!.Value);
 
             // Act & Assert - Second gain
             var gain2Param = new FloatParameter("Gain", 0.5f);
             effect.SetParameters(gain2Param);
-            var result2 = effect.Process(input, input.Length);
+            var result2 = effect.Process(input, input.Length, 1);
             
             Assert.Equal(0.5f, effect.GetParameters()[0].AsFloatParameter()!.Value);
 
@@ -341,7 +341,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             }
 
             // Act
-            var result = effect.Process(input, input.Length);
+            var result = effect.Process(input, input.Length, 1);
 
             // Assert
             unsafe

@@ -123,7 +123,7 @@
 								</DataTemplate>
 							</ComboBox.ItemTemplate>
 						</ComboBox>
-						<Label Content="Enable stereo recording if available (Will mix down to Mono)." Margin="16,0,0,0" />
+						<Label Content="Enable stereo recording if available." Margin="16,0,0,0" />
 						<ToggleSwitch Margin="16,0,0,0" IsChecked="{Binding AppSettings.EnableStereoRecording, Mode=TwoWay}" ></ToggleSwitch>
 
 

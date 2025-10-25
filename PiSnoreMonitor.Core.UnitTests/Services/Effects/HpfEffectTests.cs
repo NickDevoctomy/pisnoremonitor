@@ -41,7 +41,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             var input = new byte[10];
 
             // Act
-            var result = effect.Process(input, 0);
+            var result = effect.Process(input, 0, 1);
 
             // Assert
             Assert.Same(input, result);
@@ -60,7 +60,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             Array.Fill<byte>(input, 0);
 
             // Act
-            var result = effect.Process(input, input.Length);
+            var result = effect.Process(input, input.Length, 1);
 
             // Assert
             Assert.Equal(input.Length, result.Length);
@@ -125,7 +125,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             }
 
             // Act
-            var result = effect.Process(input, input.Length);
+            var result = effect.Process(input, input.Length, 1);
 
             // Assert
             Assert.Equal(input.Length, result.Length);
@@ -185,7 +185,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             }
 
             // Act
-            var result = effect.Process(input, input.Length);
+            var result = effect.Process(input, input.Length, 1);
 
             // Assert - should not exceed 16-bit range
             unsafe
@@ -218,11 +218,11 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             // Act
             var sampleRateParam = new FloatParameter("SampleRate", 44100);
             effect.SetParameters(sampleRateParam);
-            var result1 = effect.Process(input1, input1.Length);
+            var result1 = effect.Process(input1, input1.Length, 1);
 
             var sampleRateParam2 = new FloatParameter("SampleRate", 48000);
             effect.SetParameters(sampleRateParam2);
-            var result2 = effect.Process(input2, input2.Length);
+            var result2 = effect.Process(input2, input2.Length, 1);
 
             // Assert - Different sample rates should produce different filtering behavior
             // This is a basic check that the coefficient calculation is working

@@ -8,6 +8,7 @@ namespace PiSnoreMonitor.Core.Services.Effects
 
         public PooledBlock Process(
             PooledBlock block,
-            int length);
+            int length,
+            int channels);
     }
 }

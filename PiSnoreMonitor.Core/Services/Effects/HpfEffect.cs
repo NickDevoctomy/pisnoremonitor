@@ -60,7 +60,7 @@ namespace PiSnoreMonitor.Core.Services.Effects
             }
         }
 
-        public byte[] Process(byte[] block, int length)
+        public byte[] Process(byte[] block, int length, int channels)
         {
             if (block == null || length == 0)
                 return block ?? [];
