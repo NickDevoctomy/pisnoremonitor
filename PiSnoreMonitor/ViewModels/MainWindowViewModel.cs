@@ -129,6 +129,7 @@ namespace PiSnoreMonitor.ViewModels
             var audioInputDevices = _audioInputDeviceEnumerator!.GetAudioInputDeviceNames();
             foreach (var device in audioInputDevices.DistinctBy(x => x.Name))
             {
+                _logger?.LogInformation("Found audio input device: {DeviceName} (ID: {DeviceId})", device.Name, device.Id);
                 AudioInputDevices.Add(device);
             }
 
@@ -219,11 +220,14 @@ namespace PiSnoreMonitor.ViewModels
         {
             if(IsRecording)
             {
+                _logger?.LogInformation("Closing application while recording is in progress. Stopping recording first.");
                 await ToggleRecording();
             }
 
+            _logger?.LogInformation("Saving application settings.");
             await _appSettingsLoader!.SaveAsync(AppSettings!, CancellationToken.None);
 
+            _logger?.LogInformation("Exiting.");
             Environment.Exit(0);
         }
 

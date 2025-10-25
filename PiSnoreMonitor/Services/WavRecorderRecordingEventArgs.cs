@@ -5,6 +5,6 @@ namespace PiSnoreMonitor.Services
 {
     public class WavRecorderRecordingEventArgs : EventArgs
     {
-        public PooledBlock CurrentBlock { get; set; }
+        public PooledBlock? CurrentBlock { get; set; }
     }
 }
