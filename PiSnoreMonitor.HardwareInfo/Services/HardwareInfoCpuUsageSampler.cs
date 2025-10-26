@@ -3,15 +3,13 @@ using PiSnoreMonitor.Core.Services;
 
 namespace PiSnoreMonitor.HardwareInfo.Services
 {
-    public class HardwareInfoCpuUsageSampler : ICpuUsageSampler
+    public class HardwareInfoCpuUsageSampler(IHardwareInfo hardwareInfo) : ICpuUsageSampler
     {
-        private IHardwareInfo _hardwareInfo = new Hardware.Info.HardwareInfo();
-
         public double GetProcessCpuUsagePercent()
         {
-            _hardwareInfo.RefreshCPUList(true, 500, true);
+            hardwareInfo.RefreshCPUList(true, 500, true);
 
-            var allCpus = _hardwareInfo.CpuList;
+            var allCpus = hardwareInfo.CpuList;
             if(allCpus.Any())
             {
                 return allCpus

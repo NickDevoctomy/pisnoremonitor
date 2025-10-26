@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiSnoreMonitor.PortAudio", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiSnoreMonitor.HardwareInfo", "PiSnoreMonitor.HardwareInfo\PiSnoreMonitor.HardwareInfo.csproj", "{0BD87AAE-B756-43E2-BDF0-4D20470C92FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiSnoreMonitor.HardwareInfo.UnitTests", "PiSnoreMonitor.HardwareInfo.UnitTests\PiSnoreMonitor.HardwareInfo.UnitTests.csproj", "{5A98D60E-BC52-460F-A0A1-94086E678B2B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,12 +49,17 @@ Global
 		{0BD87AAE-B756-43E2-BDF0-4D20470C92FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BD87AAE-B756-43E2-BDF0-4D20470C92FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BD87AAE-B756-43E2-BDF0-4D20470C92FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A98D60E-BC52-460F-A0A1-94086E678B2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A98D60E-BC52-460F-A0A1-94086E678B2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A98D60E-BC52-460F-A0A1-94086E678B2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A98D60E-BC52-460F-A0A1-94086E678B2B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{52844659-9C2F-45D5-B37E-3989A44B9B49} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{5A98D60E-BC52-460F-A0A1-94086E678B2B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F50B94A0-9974-4A54-8A6D-DADEA7EAB0D8}
