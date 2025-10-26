@@ -5,12 +5,13 @@ using PiSnoreMonitor.Core.Services;
 using PiSnoreMonitor.Core.Services.Effects;
 using PortAudioSharp;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
 namespace PiSnoreMonitor.Services
 {
-
+    [ExcludeFromCodeCoverage(Justification = "Not going to attempt to abstract out PortAudio.")]
     public class PortAudioWavRecorder(
         int deviceId,
         int sampleRate,

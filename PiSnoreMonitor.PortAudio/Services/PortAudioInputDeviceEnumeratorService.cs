@@ -1,8 +1,10 @@
 ﻿using PiSnoreMonitor.Core.Services;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PiSnoreMonitor.Services
 {
-    internal class PortAudioInputDeviceEnumeratorService : IAudioInputDeviceEnumeratorService
+    [ExcludeFromCodeCoverage(Justification = "Not going to attempt to abstract out PortAudio.")]
+    public class PortAudioInputDeviceEnumeratorService : IAudioInputDeviceEnumeratorService
     {
         public IEnumerable<AudioInputDevice> GetAudioInputDeviceNames()
         {

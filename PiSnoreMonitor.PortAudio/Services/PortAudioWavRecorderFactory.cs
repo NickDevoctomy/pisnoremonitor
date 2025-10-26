@@ -4,9 +4,11 @@ using PiSnoreMonitor.Core.Configuration;
 using PiSnoreMonitor.Core.Services;
 using PiSnoreMonitor.Core.Services.Effects;
 using PiSnoreMonitor.Services.Effects.Parameters;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PiSnoreMonitor.Services
 {
+    [ExcludeFromCodeCoverage(Justification = "Not going to attempt to abstract out PortAudio.")]
     public class PortAudioWavRecorderFactory : IWavRecorderFactory
     {
         private readonly IAppSettingsLoader<AppSettings> _appSettingsLoader;
