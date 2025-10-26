@@ -5,15 +5,10 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using PiSnoreMonitor.Controls;
 using PiSnoreMonitor.Core.Configuration;
+using PiSnoreMonitor.Core.Extensions;
 using PiSnoreMonitor.Core.Services;
-using PiSnoreMonitor.Extensions;
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PiSnoreMonitor.ViewModels
 {

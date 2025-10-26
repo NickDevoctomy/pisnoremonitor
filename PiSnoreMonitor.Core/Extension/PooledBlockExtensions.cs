@@ -1,11 +1,13 @@
 ﻿using PiSnoreMonitor.Core.Data;
-using System;
 
-namespace PiSnoreMonitor.Extensions
+namespace PiSnoreMonitor.Core.Extensions
 {
     public static class PooledBlockExtensions
     {
-        public static (float Left, float Right) CalculateAmplitude(this PooledBlock block, double maximumDbLevel, int channels)
+        public static (float Left, float Right) CalculateAmplitude(
+            this PooledBlock block,
+            double maximumDbLevel,
+            int channels)
         {
             if (block.Buffer == null || block.Count == 0)
             {
@@ -13,7 +15,10 @@ namespace PiSnoreMonitor.Extensions
             }
 
             int sampleCount = block.Count / 2;
-            if (sampleCount == 0) return (0.0f, 0.0f);
+            if (sampleCount == 0)
+            {
+                return (0.0f, 0.0f);
+            }
 
             if (channels == 1)
             {
@@ -60,7 +65,7 @@ namespace PiSnoreMonitor.Extensions
                                 leftSum += (double)leftSample * leftSample;
                                 leftSamples++;
                             }
-                            
+
                             // Right channel (odd indices)
                             if (i + 1 < sampleCount)
                             {
@@ -74,7 +79,7 @@ namespace PiSnoreMonitor.Extensions
 
                 float leftAmplitude = leftSamples > 0 ? CalculateAmplitudeFromRms(leftSum, leftSamples, maximumDbLevel) : 0.0f;
                 float rightAmplitude = rightSamples > 0 ? CalculateAmplitudeFromRms(rightSum, rightSamples, maximumDbLevel) : 0.0f;
-                
+
                 return (leftAmplitude, rightAmplitude);
             }
             else
@@ -101,14 +106,20 @@ namespace PiSnoreMonitor.Extensions
             }
         }
 
-        private static float CalculateAmplitudeFromRms(double sumOfSquares, int sampleCount, double maximumDbLevel)
+        private static float CalculateAmplitudeFromRms(
+            double sumOfSquares,
+            int sampleCount,
+            double maximumDbLevel)
         {
             double rms = Math.Sqrt(sumOfSquares / sampleCount);
             double rmsNormalized = rms / 32767.0;
 
             // Convert to dB: 20 * log10(rmsNormalized)
             // For very small values, clamp to prevent log(0)
-            if (rmsNormalized < 1e-10) return 0.0f;
+            if (rmsNormalized < 1e-10)
+            {
+                return 0.0f;
+            }
 
             double dB = 20.0 * Math.Log10(rmsNormalized);
             const double minDb = -60.0;
