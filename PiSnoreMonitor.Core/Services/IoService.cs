@@ -16,6 +16,7 @@ namespace PiSnoreMonitor.Core.Services
                     .ToList();
             }
 
+            // This is a raspberry pi os thing rather than a general linux thing
             return DriveInfo.GetDrives()
                 .Where(d => d.Name.StartsWith($"/media/{Environment.UserName}", StringComparison.Ordinal))
                 .Select(d => d.RootDirectory.FullName)
