@@ -25,7 +25,10 @@ namespace PiSnoreMonitor.ViewModels
         private readonly IStorageService? _storageService;
         private readonly IWavRecorderFactory? _wavRecorderFactory;
         private readonly IAudioInputDeviceEnumeratorService? _audioInputDeviceEnumerator;
+        private ISideCarWriterService? _sideCarWriterService;
+
         private IWavRecorder? _wavRecorder;
+        private SideCarInfo? _sideCarInfo;
 
         [ObservableProperty]
         private bool isRecording = false;
@@ -94,7 +97,8 @@ namespace PiSnoreMonitor.ViewModels
             ISystemMonitor systemMonitor,
             IStorageService storageService,
             IWavRecorderFactory wavRecorderFactory,
-            IAudioInputDeviceEnumeratorService audioInputDeviceEnumerator)
+            IAudioInputDeviceEnumeratorService audioInputDeviceEnumerator,
+            ISideCarWriterService sideCarWriterService)
         {
             _logger = logger;
             _appSettingsLoader = appSettingsLoader;
@@ -102,6 +106,7 @@ namespace PiSnoreMonitor.ViewModels
             _storageService = storageService;
             _wavRecorderFactory = wavRecorderFactory;
             _audioInputDeviceEnumerator = audioInputDeviceEnumerator;
+            _sideCarWriterService = sideCarWriterService;
 
             _logger.LogInformation("MainWindowViewModel initialized");
 
@@ -272,6 +277,7 @@ namespace PiSnoreMonitor.ViewModels
                     return;
                 }
                 await _wavRecorder!.StartRecordingAsync(outputFilePath, CancellationToken.None);
+                _sideCarInfo = await _sideCarWriterService!.StartRecordingAsync(outputFilePath.Replace(".wav", ".sidecar.json"), CancellationToken.None);
                 IsRecording = true;
                 ButtonBackground = Brushes.Red;
                 ButtonText = "Stop Recording";
@@ -287,6 +293,8 @@ namespace PiSnoreMonitor.ViewModels
             {
                 _logger?.LogInformation("Stopping recording");
                 await _wavRecorder!.StopRecordingAsync(CancellationToken.None);
+                await _sideCarWriterService!.StopRecordingAsync(_sideCarInfo!, CancellationToken.None);
+
                 IsRecording = false;
                 ButtonBackground = Brushes.LightGray;
                 ButtonText = "Start Recording";

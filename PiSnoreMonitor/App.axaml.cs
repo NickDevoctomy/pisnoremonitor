@@ -66,6 +66,7 @@ namespace PiSnoreMonitor
             services.AddSingleton<IAudioInputDeviceEnumeratorService, PortAudioInputDeviceEnumeratorService>();
             services.AddSingleton<IIoService, IoService>();
             services.AddSingleton<IAppSettingsLoader, AppSettingsLoader>();
+            services.AddSingleton<ISideCarWriterService, SideCarWriterService>();
 
             // Register ViewModels
             services.AddTransient<MainWindowViewModel>();
