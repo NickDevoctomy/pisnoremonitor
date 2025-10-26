@@ -9,9 +9,7 @@
 		x:Class="PiSnoreMonitor.Views.MainWindowView"
 		x:DataType="vm:MainWindowViewModel"
 		Title="PiSnoreMonitor"
-		WindowStartupLocation="CenterScreen"
-		WindowState="FullScreen"
-		Topmost="True">
+		WindowStartupLocation="CenterScreen">
 	<Design.DataContext>
 		<vm:MainWindowViewModel/>
 	</Design.DataContext>
@@ -101,11 +99,20 @@
 				</Grid>
 			</TabItem>
 
+            <TabItem Header="Review" FontSize="13">
+
+            </TabItem>
+
 			<TabItem Header="Configuration"
 					 FontSize="13">
 				<ScrollViewer HorizontalScrollBarVisibility="Hidden"
 							  VerticalScrollBarVisibility="Auto">
 					<StackPanel>
+						<Label Content="GENERAL" FontWeight="Bold" FontSize="16" />
+
+						<Label Content="Start in Kiosk mode." Margin="16,0,0,0" />
+						<ToggleSwitch Margin="16,0,0,0" IsChecked="{Binding AppSettings.StartInKioskMode, Mode=TwoWay}" ></ToggleSwitch>
+
 						<Label Content="INPUT" FontWeight="Bold" FontSize="16" />
 
 						<Label Content="🎙️ Selected Audio Input Device" FontWeight="Bold" Margin="8,8,0,0" />

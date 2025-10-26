@@ -179,6 +179,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Configuration
             var cancellationTokenSource = new CancellationTokenSource();
             var expectedJson = """
                 {
+                  "StartInKioskMode": true,
                   "RecordingSampleRate": 48000,
                   "EnableStereoRecording": false,
                   "SelectedAudioInputDeviceName": "",

@@ -1,5 +1,6 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
+using PiSnoreMonitor.Core.Configuration;
 using PiSnoreMonitor.ViewModels;
 using System;
 using System.Threading;
@@ -32,8 +33,18 @@ namespace PiSnoreMonitor.Views
                 var stereoDisplay = this.FindControl<Controls.StereoAmplitudeDisplay>("StereoAmplitudeDisplayControl");
                 vm.StereoAmplitudeDisplay = stereoDisplay;
 
-                try { await vm.InitializeAsync(_loadCts.Token); }
-                catch (OperationCanceledException) { }
+                try
+                {
+                    await vm.InitializeAsync(_loadCts.Token);
+                    if (vm.AppSettings!.StartInKioskMode)
+                    {
+                        this.WindowState = WindowState.FullScreen;
+                        this.Topmost = true;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                }
             }
         }
 

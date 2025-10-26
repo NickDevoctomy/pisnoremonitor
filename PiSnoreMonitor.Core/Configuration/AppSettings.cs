@@ -2,6 +2,8 @@
 {
     public class AppSettings : IEquatable<AppSettings>
     {
+        public bool StartInKioskMode { get; set; } = true;
+
         public int RecordingSampleRate { get; set; } = 48000;
 
         public bool EnableStereoRecording { get; set; } = false;
