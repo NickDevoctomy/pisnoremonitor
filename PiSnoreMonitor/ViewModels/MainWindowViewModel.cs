@@ -22,7 +22,7 @@ namespace PiSnoreMonitor.ViewModels
         private readonly ILogger<MainWindowViewModel>? _logger;
         private readonly IAppSettingsLoader<AppSettings>? _appSettingsLoader;
         private readonly ISystemMonitor? _systemMonitor;
-        private readonly IStorageService? _storageService;
+        private readonly IIoService? _ioService;
         private readonly IWavRecorderFactory? _wavRecorderFactory;
         private readonly IAudioInputDeviceEnumeratorService? _audioInputDeviceEnumerator;
         private ISideCarWriterService? _sideCarWriterService;
@@ -95,7 +95,7 @@ namespace PiSnoreMonitor.ViewModels
             ILogger<MainWindowViewModel> logger,
             IAppSettingsLoader<AppSettings> appSettingsLoader,
             ISystemMonitor systemMonitor,
-            IStorageService storageService,
+            IIoService ioService,
             IWavRecorderFactory wavRecorderFactory,
             IAudioInputDeviceEnumeratorService audioInputDeviceEnumerator,
             ISideCarWriterService sideCarWriterService)
@@ -103,7 +103,7 @@ namespace PiSnoreMonitor.ViewModels
             _logger = logger;
             _appSettingsLoader = appSettingsLoader;
             _systemMonitor = systemMonitor;
-            _storageService = storageService;
+            _ioService = ioService;
             _wavRecorderFactory = wavRecorderFactory;
             _audioInputDeviceEnumerator = audioInputDeviceEnumerator;
             _sideCarWriterService = sideCarWriterService;
@@ -210,7 +210,7 @@ namespace PiSnoreMonitor.ViewModels
 
         private string GetOutputFilePath()
         {
-            var removableDrives = _storageService!.GetRemovableStorageDrivePaths();
+            var removableDrives = _ioService!.GetRemovableStorageDrivePaths();
             if (removableDrives.Count > 0)
             {
                 var prefix = "recording";

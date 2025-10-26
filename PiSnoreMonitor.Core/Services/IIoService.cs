@@ -4,6 +4,8 @@ namespace PiSnoreMonitor.Core.Services
 {
     public interface IIoService
     {
+        List<string> GetRemovableStorageDrivePaths();
+
         public string GetSpecialPath(SpecialPaths specialPath);
 
         public bool Exists(string path);

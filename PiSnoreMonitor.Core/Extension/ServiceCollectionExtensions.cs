@@ -8,7 +8,6 @@ namespace PiSnoreMonitor.Core.Extensions
     {
         public static IServiceCollection AddPiSnoreMonitorCore(this IServiceCollection services)
         {
-            services.AddSingleton<IStorageService, StorageService>();
             services.AddSingleton<IIoService, IoService>();
             services.AddSingleton<IAppSettingsLoader<AppSettings>, AppSettingsLoader<AppSettings>>();
             services.AddSingleton<ISideCarWriterService, SideCarWriterService>();
