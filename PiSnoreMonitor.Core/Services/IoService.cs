@@ -9,6 +9,11 @@ namespace PiSnoreMonitor.Core.Services
             return Path.Combine(paths);
         }
 
+        public void CreateDirectory(string path)
+        {
+            Directory.CreateDirectory(path);
+        }
+
         public bool Exists(string path)
         {
             return Path.Exists(path);
@@ -21,7 +26,7 @@ namespace PiSnoreMonitor.Core.Services
                 case SpecialPaths.AppUserStorage:
                     {
                         var path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                        path = System.IO.Path.Combine(path, "PiSnoreMonitor");
+                        path = CombinePaths(path, "PiSnoreMonitor");
                         return path;
                     }
 
@@ -34,7 +39,7 @@ namespace PiSnoreMonitor.Core.Services
             string path,
             CancellationToken cancellationToken = default)
         {
-            return await System.IO.File.ReadAllTextAsync(
+            return await File.ReadAllTextAsync(
                 path,
                 cancellationToken);
         }

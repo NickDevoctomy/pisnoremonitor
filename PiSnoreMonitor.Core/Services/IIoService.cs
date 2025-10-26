@@ -10,6 +10,8 @@ namespace PiSnoreMonitor.Core.Services
 
         public string CombinePaths(params string[] paths);
 
+        public void CreateDirectory(string path);
+
         public Task<string> ReadAllTextAsync(
             string path,
             CancellationToken cancellationToken);

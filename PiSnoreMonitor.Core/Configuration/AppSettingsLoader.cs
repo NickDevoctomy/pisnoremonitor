@@ -24,10 +24,17 @@ namespace PiSnoreMonitor.Core.Configuration
 
             if(ioService.Exists(path))
             {
-                var json = await ioService.ReadAllTextAsync(path, cancellationToken);
-                var appSettings = JsonSerializer.Deserialize<T>(json);
-                _appSettings = appSettings;
-                return (appSettings ?? Activator.CreateInstance<T>());
+                try
+                {
+                    var json = await ioService.ReadAllTextAsync(path, cancellationToken);
+                    var appSettings = JsonSerializer.Deserialize<T>(json);
+                    _appSettings = appSettings;
+                    return (appSettings ?? Activator.CreateInstance<T>());
+                }
+                catch (JsonException)
+                {
+                    // Invalid JSON, fall through to return default settings
+                }
             }
 
             _appSettings = Activator.CreateInstance<T>();
@@ -37,10 +44,10 @@ namespace PiSnoreMonitor.Core.Configuration
         public async Task SaveAsync(CancellationToken cancellationToken = default)
         {
             var path = ioService.GetSpecialPath(Enums.SpecialPaths.AppUserStorage);
-            path = Path.Combine(path, "config.json");
+            path = ioService.CombinePaths(path, "config.json");
 
             var fileInfo = new FileInfo(path);
-            fileInfo.Directory!.Create();
+            ioService.CreateDirectory(fileInfo.Directory!.FullName);
 
             var json = JsonSerializer.Serialize(_appSettings, DefaultJsonSerializerOptions);
             await ioService.WriteAllTextAsync(path, json, cancellationToken);
