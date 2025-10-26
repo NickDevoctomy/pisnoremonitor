@@ -25,7 +25,7 @@ namespace PiSnoreMonitor.ViewModels
         private readonly IIoService? _ioService;
         private readonly IWavRecorderFactory? _wavRecorderFactory;
         private readonly IAudioInputDeviceEnumeratorService? _audioInputDeviceEnumerator;
-        private ISideCarWriterService? _sideCarWriterService;
+        private readonly ISideCarWriterService? _sideCarWriterService;
 
         private IWavRecorder? _wavRecorder;
         private SideCarInfo? _sideCarInfo;
@@ -110,7 +110,7 @@ namespace PiSnoreMonitor.ViewModels
 
             _logger.LogInformation("MainWindowViewModel initialized");
 
-            _systemMonitor.OnSystemStatusUpdate += _systemMonitor_OnSystemStatusUpdate;
+            _systemMonitor.OnSystemStatusUpdate += SystemMonitor_OnSystemStatusUpdate;
 
             _systemMonitor.StartMonitoring();
         }
@@ -123,7 +123,13 @@ namespace PiSnoreMonitor.ViewModels
             {
                 case nameof(SelectedAudioInputDeviceId):
                     {
-                        var selectedAudioInputDeviceName = AudioInputDevices.Single(x => x.Id == SelectedAudioInputDeviceId);
+                        var selectedAudioInputDeviceName = AudioInputDevices.SingleOrDefault(x => x.Id == SelectedAudioInputDeviceId);
+                        if(selectedAudioInputDeviceName == null)
+                        {
+                            _logger?.LogWarning("Selected audio input device ID {DeviceId} not found in the available devices.", SelectedAudioInputDeviceId);
+                            return;
+                        }
+
                         AppSettings!.SelectedAudioInputDeviceName = selectedAudioInputDeviceName.Name;
                         break;
                     }
@@ -154,7 +160,7 @@ namespace PiSnoreMonitor.ViewModels
             _logger?.LogInformation("MainWindowViewModel initialization completed");
         }
 
-        private void _systemMonitor_OnSystemStatusUpdate(object? sender, SystemMonitorStatusEventArgs e)
+        private void SystemMonitor_OnSystemStatusUpdate(object? sender, SystemMonitorStatusEventArgs e)
         {
             var usedGB = Math.Round((e.TotalMemoryBytes - e.FreeMemoryBytes) / 1073741824.0, 2);
             var totalGB = Math.Round(e.TotalMemoryBytes / 1073741824.0, 2);

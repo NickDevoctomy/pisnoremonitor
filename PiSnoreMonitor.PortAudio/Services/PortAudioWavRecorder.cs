@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
-namespace PiSnoreMonitor.Services
+namespace PiSnoreMonitor.PortAudio.Services
 {
     [ExcludeFromCodeCoverage(Justification = "Not going to attempt to abstract out PortAudio.")]
     public class PortAudioWavRecorder(
@@ -50,7 +50,7 @@ namespace PiSnoreMonitor.Services
             string filePath,
             CancellationToken cancellationToken = default)
         {
-            logger.LogInformation($"WavRecorder:StartRecordingAsync - {filePath}");
+            logger.LogInformation("WavRecorder:StartRecordingAsync - {filePath}", filePath);
             ObjectDisposedException.ThrowIf(disposed, nameof(PortAudioWavRecorder));
 
             if (running)

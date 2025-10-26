@@ -1,8 +1,8 @@
 ﻿namespace PiSnoreMonitor.Core.Services
 {
-    public class AudioInputDevice
+    public class AudioInputDevice(int id, string name)
     {
-        public int Id { get; set; }
-        public string? Name { get; set; }
+        public int Id { get; set; } = id;
+        public string Name { get; set; } = name;
     }
 }

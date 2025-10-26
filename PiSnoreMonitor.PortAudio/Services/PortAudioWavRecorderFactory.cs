@@ -6,25 +6,16 @@ using PiSnoreMonitor.Core.Services.Effects;
 using PiSnoreMonitor.Services.Effects.Parameters;
 using System.Diagnostics.CodeAnalysis;
 
-namespace PiSnoreMonitor.Services
+namespace PiSnoreMonitor.PortAudio.Services
 {
     [ExcludeFromCodeCoverage(Justification = "Not going to attempt to abstract out PortAudio.")]
-    public class PortAudioWavRecorderFactory : IWavRecorderFactory
+    public class PortAudioWavRecorderFactory(
+        IAppSettingsLoader<AppSettings> appSettingsLoader,
+        IServiceProvider serviceProvider) : IWavRecorderFactory
     {
-        private readonly IAppSettingsLoader<AppSettings> _appSettingsLoader;
-        private readonly IServiceProvider _serviceProvider;
-
-        public PortAudioWavRecorderFactory(
-            IAppSettingsLoader<AppSettings> appSettingsLoader,
-            IServiceProvider serviceProvider)
-        {
-            _appSettingsLoader = appSettingsLoader;
-            _serviceProvider = serviceProvider;
-        }
-
         public async Task<IWavRecorder> CreateAsync(int deviceId, bool stereo, CancellationToken cancellationToken = default)
         {
-            var appSettings = await _appSettingsLoader.LoadAsync(cancellationToken);
+            var appSettings = await appSettingsLoader.LoadAsync(cancellationToken);
             var effectsBus = new EffectsBus();
 
             if (appSettings.EnableHpfEffect)
@@ -50,7 +41,7 @@ namespace PiSnoreMonitor.Services
                 stereo ? 2 : 1,
                 1024,
                 effectsBus.Effects.Count > 0 ? effectsBus : null,
-                _serviceProvider.GetService<ILogger<PortAudioWavRecorder>>()!);
+                serviceProvider.GetService<ILogger<PortAudioWavRecorder>>()!);
         }
     }
 }

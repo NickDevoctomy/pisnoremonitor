@@ -1,7 +1,7 @@
 ﻿using PiSnoreMonitor.Core.Services;
 using System.Diagnostics.CodeAnalysis;
 
-namespace PiSnoreMonitor.Services
+namespace PiSnoreMonitor.PortAudio.Services
 {
     [ExcludeFromCodeCoverage(Justification = "Not going to attempt to abstract out PortAudio.")]
     public class PortAudioInputDeviceEnumeratorService : IAudioInputDeviceEnumeratorService
@@ -14,15 +14,9 @@ namespace PiSnoreMonitor.Services
                 var deviceInfo = PortAudioSharp.PortAudio.GetDeviceInfo(i);
                 if (deviceInfo.maxInputChannels > 0)
                 {
-                    yield return new AudioInputDevice
-                    {
-                        Id = i,
-                        Name = deviceInfo.name
-                    };
+                    yield return new AudioInputDevice(i, deviceInfo.name);
                 }
             }
-
-            var inputDevice = PortAudioSharp.PortAudio.DefaultInputDevice;
         }
     }
 }
