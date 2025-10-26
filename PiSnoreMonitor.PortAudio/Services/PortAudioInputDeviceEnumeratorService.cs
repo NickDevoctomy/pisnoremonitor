@@ -1,5 +1,5 @@
-﻿using PiSnoreMonitor.Core.Services;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using PiSnoreMonitor.Core.Services;
 
 namespace PiSnoreMonitor.PortAudio.Services
 {

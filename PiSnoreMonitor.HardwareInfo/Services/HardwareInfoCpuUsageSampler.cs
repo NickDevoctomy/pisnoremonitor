@@ -10,7 +10,7 @@ namespace PiSnoreMonitor.HardwareInfo.Services
             hardwareInfo.RefreshCPUList(true, 500, true);
 
             var allCpus = hardwareInfo.CpuList;
-            if(allCpus.Any())
+            if (allCpus.Count != 0)
             {
                 return allCpus
                     .Select(x => (long)x.PercentProcessorTime)

@@ -4,14 +4,14 @@ namespace PiSnoreMonitor.Core.Services.Effects
 {
     public class EffectsBus : IEffectsBus
     {
-        public List<IEffect> Effects { get; } = [];
+        public List<IEffect> Effects { get; } = new List<IEffect>();
 
         public PooledBlock Process(
             PooledBlock block,
             int length,
             int channels)
         {
-            if(Effects.Count == 0)
+            if (Effects.Count == 0)
             {
                 return block;
             }

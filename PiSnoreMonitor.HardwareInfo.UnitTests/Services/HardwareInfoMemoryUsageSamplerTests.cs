@@ -1,5 +1,5 @@
+﻿using Hardware.Info;
 using Moq;
-using Hardware.Info;
 using PiSnoreMonitor.HardwareInfo.Services;
 using Xunit;
 

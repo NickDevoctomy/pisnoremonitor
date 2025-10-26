@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PiSnoreMonitor.Core.Configuration;
 using PiSnoreMonitor.Core.Services;
 using PiSnoreMonitor.Core.Services.Effects;
-using PiSnoreMonitor.Services.Effects.Parameters;
-using System.Diagnostics.CodeAnalysis;
+using PiSnoreMonitor.Core.Services.Effects.Parameters;
 
 namespace PiSnoreMonitor.PortAudio.Services
 {
@@ -27,7 +27,7 @@ namespace PiSnoreMonitor.PortAudio.Services
                 effectsBus.Effects.Add(hpfEffect);
             }
 
-            if(appSettings.EnableGainEffect)
+            if (appSettings.EnableGainEffect)
             {
                 var gainEffect = new GainEffect();
                 var gainParam = new FloatParameter("Gain", appSettings.GainEffectGain);

@@ -1,5 +1,5 @@
-﻿using PiSnoreMonitor.Core.Enums;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using PiSnoreMonitor.Core.Enums;
 
 namespace PiSnoreMonitor.Core.Services
 {
@@ -39,7 +39,7 @@ namespace PiSnoreMonitor.Core.Services
 
         public string GetSpecialPath(SpecialPaths specialPath)
         {
-            switch(specialPath)
+            switch (specialPath)
             {
                 case SpecialPaths.AppUserStorage:
                     {
@@ -67,7 +67,7 @@ namespace PiSnoreMonitor.Core.Services
             string text,
             CancellationToken cancellationToken = default)
         {
-            await System.IO.File.WriteAllTextAsync(
+            await File.WriteAllTextAsync(
                 path,
                 text,
                 cancellationToken);

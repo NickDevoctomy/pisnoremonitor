@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PiSnoreMonitor.Core.Services;
 using PiSnoreMonitor.PortAudio.Services;
-using PiSnoreMonitor.Services;
 
 namespace PiSnoreMonitor.PortAudio.Extensions
 {

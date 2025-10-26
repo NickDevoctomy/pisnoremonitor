@@ -1,5 +1,5 @@
+﻿using Hardware.Info;
 using Moq;
-using Hardware.Info;
 using PiSnoreMonitor.HardwareInfo.Services;
 using Xunit;
 
@@ -129,11 +129,12 @@ namespace PiSnoreMonitor.HardwareInfo.UnitTests.Services
             sut.GetProcessCpuUsagePercent();
 
             // Assert
-            mockHardwareInfo.Verify(x => x.RefreshCPUList(
+            mockHardwareInfo.Verify(
+                x => x.RefreshCPUList(
                 It.Is<bool>(sleepFirst => sleepFirst == true),
                 It.Is<int>(millisecondsDelayBetweenTwoMeasurements => millisecondsDelayBetweenTwoMeasurements == 500),
-                It.Is<bool>(normalizeTotalCpuUsage => normalizeTotalCpuUsage == true)
-            ), Times.Once);
+                It.Is<bool>(normalizeTotalCpuUsage => normalizeTotalCpuUsage == true)),
+                Times.Once);
         }
     }
 }

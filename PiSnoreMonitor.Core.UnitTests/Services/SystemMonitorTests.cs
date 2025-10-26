@@ -1,4 +1,4 @@
-using Moq;
+﻿using Moq;
 using PiSnoreMonitor.Core.Services;
 
 namespace PiSnoreMonitor.Core.UnitTests.Services
@@ -72,19 +72,19 @@ namespace PiSnoreMonitor.Core.UnitTests.Services
 
             // Act
             sut.StartMonitoring();
-            
+
             var timeout = DateTime.Now.AddSeconds(5);
             while (!eventFired && DateTime.Now < timeout)
             {
                 Thread.Sleep(100);
             }
-            
+
             // Assert
             Assert.True(eventFired, "Event should have fired within timeout period");
             Assert.NotNull(capturedEventArgs);
             Assert.Equal(15.5, capturedEventArgs.CpuUsagePercentage);
             Assert.Equal(8000000000UL, capturedEventArgs.TotalMemoryBytes);
-            Assert.Equal(4000000000UL, capturedEventArgs.FreeMemoryBytes);            
+            Assert.Equal(4000000000UL, capturedEventArgs.FreeMemoryBytes);
             mockMemoryUsageSampler.VerifyAll();
             mockCpuUsageSampler.VerifyAll();
 
@@ -110,18 +110,18 @@ namespace PiSnoreMonitor.Core.UnitTests.Services
 
             // Act
             sut.StartMonitoring();
-            
+
             var timeout = DateTime.Now.AddSeconds(5);
             while (!eventFired && DateTime.Now < timeout)
             {
                 Thread.Sleep(100);
             }
-            
+
             // Assert
             Assert.True(eventFired, "Event should have fired within timeout period");
             mockMemoryUsageSampler.Verify(x => x.GetSystemMemory(), Times.AtLeastOnce);
             mockCpuUsageSampler.Verify(x => x.GetProcessCpuUsagePercent(), Times.AtLeastOnce);
-            
+
             sut.StopMonitoring();
         }
 
@@ -148,7 +148,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services
 
             sut.OnSystemStatusUpdate += (sender, args) => eventFiredCount++;
             sut.OnSystemStatusUpdate += (sender, args) => eventFiredCount++;
-            sut.OnSystemStatusUpdate += (sender, args) => 
+            sut.OnSystemStatusUpdate += (sender, args) =>
             {
                 Assert.Equal(expectedEventArgs, args);
                 eventFiredCount++;
@@ -156,15 +156,15 @@ namespace PiSnoreMonitor.Core.UnitTests.Services
 
             // Act
             sut.StartMonitoring();
-            
+
             var timeout = DateTime.Now.AddSeconds(5);
             while (eventFiredCount < 3 && DateTime.Now < timeout)
             {
                 Thread.Sleep(100);
             }
-            
+
             // Assert
-            Assert.Equal(3, eventFiredCount);          
+            Assert.Equal(3, eventFiredCount);
             mockMemoryUsageSampler.VerifyAll();
             mockCpuUsageSampler.VerifyAll();
 

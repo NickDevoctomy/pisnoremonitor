@@ -7,7 +7,7 @@
             CancellationToken cancellationToken = default);
 
         public Task StopRecordingAsync(
-            SideCarInfo SideCarInfo,
+            SideCarInfo sideCarInfo,
             CancellationToken cancellationToken = default);
     }
 }

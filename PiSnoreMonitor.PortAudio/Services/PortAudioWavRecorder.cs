@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using PiSnoreMonitor.Core.Data;
 using PiSnoreMonitor.Core.Extensions;
 using PiSnoreMonitor.Core.Services;
 using PiSnoreMonitor.Core.Services.Effects;
 using PortAudioSharp;
-using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-using System.Threading.Channels;
 
 namespace PiSnoreMonitor.PortAudio.Services
 {
@@ -20,7 +20,16 @@ namespace PiSnoreMonitor.PortAudio.Services
         IEffectsBus? effectsBus,
         ILogger<PortAudioWavRecorder> logger) : IWavRecorder
     {
-        public event EventHandler<WavRecorderRecordingEventArgs>? WavRecorderRecording;
+        // WAV constants for simple PCM header positions (no extra chunks)
+        private const int RiffSizeOffset = 4;   // 4 bytes, little-endian
+        private const int DataSizeOffset = 40;  // 4 bytes, little-endian
+
+        private readonly TimeSpan headerRefreshInterval = TimeSpan.FromSeconds(5);
+        private readonly Channel<PooledBlock> channel =
+            Channel.CreateBounded<PooledBlock>(new BoundedChannelOptions(capacity: 32)
+            {
+                FullMode = BoundedChannelFullMode.DropOldest,
+            });
 
         private PortAudioSharp.Stream? portAudioStream;
         private FileStream? outputFileStream;
@@ -28,23 +37,15 @@ namespace PiSnoreMonitor.PortAudio.Services
         private volatile bool running;
         private volatile bool stopping;
         private long dataBytes;
-        private readonly TimeSpan headerRefreshInterval = TimeSpan.FromSeconds(5);
         private DateTime lastHeaderRefreshUtc;
         private bool disposed;
-        private readonly Channel<PooledBlock> channel =
-            Channel.CreateBounded<PooledBlock>(new BoundedChannelOptions(capacity: 32)
-            {
-                FullMode = BoundedChannelFullMode.DropOldest,
-            });
-
-        // WAV constants for simple PCM header positions (no extra chunks)
-        private const int RiffSizeOffset = 4;   // 4 bytes, little-endian
-        private const int DataSizeOffset = 40;  // 4 bytes, little-endian
 
         ~PortAudioWavRecorder()
         {
             Dispose(disposing: false);
         }
+
+        public event EventHandler<WavRecorderRecordingEventArgs>? WavRecorderRecording;
 
         public async Task StartRecordingAsync(
             string filePath,
@@ -60,7 +61,7 @@ namespace PiSnoreMonitor.PortAudio.Services
 
             var inputInfo = PortAudioSharp.PortAudio.GetDeviceInfo(deviceId);
 
-            if(inputInfo.maxInputChannels < channels)
+            if (inputInfo.maxInputChannels < channels)
             {
                 channels = inputInfo.maxInputChannels;
             }
@@ -81,7 +82,7 @@ namespace PiSnoreMonitor.PortAudio.Services
                 FileShare.Read,
                 bufferSize: 1 << 16,
                 FileOptions.Asynchronous);
-            
+
             await WriteWavHeaderAsync(
                 outputFileStream,
                 sampleRate,
@@ -95,7 +96,7 @@ namespace PiSnoreMonitor.PortAudio.Services
             lastHeaderRefreshUtc = DateTime.UtcNow;
             running = true;
             stopping = false;
-            
+
             writerTask = Task.Run(
                 () => WriterLoop(cancellationToken),
                 cancellationToken);
@@ -115,17 +116,23 @@ namespace PiSnoreMonitor.PortAudio.Services
         public async Task StopRecordingAsync(CancellationToken cancellationToken = default)
         {
             logger.LogInformation($"WavRecorder:StopRecordingAsync");
-            if (!running) return;
+            if (!running)
+            {
+                return;
+            }
 
             // First signal that we're stopping to allow callbacks to finish gracefully
             stopping = true;
-            
+
             try
             {
                 logger.LogInformation($"WavRecorder:StopRecordingAsync - Stopping PortAudio stream.");
                 portAudioStream?.Stop();
             }
-            catch { /* ignore */ }
+            catch
+            {
+                /* ignore */
+            }
 
             // Add a small delay to allow any pending callbacks to complete
             // This ensures we don't lose audio data that's still being processed
@@ -140,17 +147,27 @@ namespace PiSnoreMonitor.PortAudio.Services
                 logger.LogInformation($"WavRecorder:StopRecordingAsync - Closing PortAudio stream.");
                 portAudioStream?.Close();
             }
-            catch { /* ignore */ }
+            catch
+            {
+                /* ignore */
+            }
 
             portAudioStream = null;
 
             logger.LogInformation($"WavRecorder:StopRecordingAsync - Completing channel writer.");
             channel.Writer.TryComplete();
-            
-            if(writerTask != null)
+
+            if (writerTask != null)
             {
                 logger.LogInformation($"WavRecorder:StopRecordingAsync - Waiting for writer task.");
-                try { await writerTask!; } catch { /* ignore */ }
+                try
+                {
+                    await writerTask!;
+                }
+                catch
+                {
+                    /* ignore */
+                }
             }
 
             logger.LogInformation($"WavRecorder:StopRecordingAsync - Closing and flushing output stream.");
@@ -162,14 +179,72 @@ namespace PiSnoreMonitor.PortAudio.Services
             }
 
             outputFileStream = null;
+        }
 
-            // We do not terminate PortAudio here, as it may be used elsewhere in the app.
-            ////if (portAudioIsInitialised)
-            ////{
-            ////    logger.LogInformation($"WavRecorder:StopRecordingAsync - Shutting down PortAudio.");
-            ////    PortAudio.Terminate();
-            ////    portAudioIsInitialised = false;
-            ////}
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    if (running)
+                    {
+                        // This should be async proper
+                        StopRecordingAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    }
+
+                    writerTask = null;
+                }
+
+                disposed = true;
+            }
+        }
+
+        private static async Task WriteWavHeaderAsync(
+            FileStream fileStream,
+            int sampleRate,
+            int channels,
+            int bitsPerSample,
+            long dataLength,
+            CancellationToken cancellationToken = default)
+        {
+            int byteRate = sampleRate * channels * bitsPerSample / 8;
+            short blockAlign = (short)(channels * bitsPerSample / 8);
+
+            await fileStream.WriteStringAsync("RIFF", System.Text.Encoding.ASCII, cancellationToken);
+            await fileStream.WriteInt32Async((int)(36 + dataLength), cancellationToken);   // will be patched
+            await fileStream.WriteStringAsync("WAVE", System.Text.Encoding.ASCII, cancellationToken);
+            await fileStream.WriteStringAsync("fmt ", System.Text.Encoding.ASCII, cancellationToken);
+            await fileStream.WriteInt32Async(16, cancellationToken);                       // PCM fmt chunk size
+            await fileStream.WriteInt16Async(1, cancellationToken);                        // PCM
+            await fileStream.WriteInt16Async((short)channels, cancellationToken);
+            await fileStream.WriteInt32Async(sampleRate, cancellationToken);
+            await fileStream.WriteInt32Async(byteRate, cancellationToken);
+            await fileStream.WriteInt16Async(blockAlign, cancellationToken);
+            await fileStream.WriteInt16Async((short)bitsPerSample, cancellationToken);
+            await fileStream.WriteStringAsync("data", System.Text.Encoding.ASCII, cancellationToken);
+            await fileStream.WriteInt32Async((int)dataLength, cancellationToken);
+        }
+
+        private static async Task PatchHeaderAsync(
+            FileStream fileStream,
+            long dataBytes,
+            CancellationToken cancellationToken = default)
+        {
+            fileStream.Position = DataSizeOffset;
+            await fileStream.WriteInt32Async((int)dataBytes, cancellationToken);
+
+            // RIFF size = 36 + dataBytes (for 44-byte header)
+            fileStream.Position = RiffSizeOffset;
+            await fileStream.WriteInt32Async((int)(36 + dataBytes), cancellationToken);
+
+            fileStream.Position = fileStream.Length;
         }
 
         private StreamCallbackResult OutputStreamCallback(
@@ -221,7 +296,6 @@ namespace PiSnoreMonitor.PortAudio.Services
         {
             try
             {
-                
                 while (await channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     while (channel.Reader.TryRead(out var block))
@@ -231,7 +305,10 @@ namespace PiSnoreMonitor.PortAudio.Services
 
                         try
                         {
-                            if (outputFileStream == null) return;
+                            if (outputFileStream == null)
+                            {
+                                return;
+                            }
 
                             await outputFileStream.WriteAsync(
                                 processedBlock.Buffer.AsMemory(0, processedBlock.Count),
@@ -256,76 +333,10 @@ namespace PiSnoreMonitor.PortAudio.Services
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"WriterLoop exception: {ex}");
             }
-        }
-
-        private static async Task WriteWavHeaderAsync(
-            FileStream fileStream,
-            int sampleRate,
-            int channels,
-            int bitsPerSample,
-            long dataLength,
-            CancellationToken cancellationToken = default)
-        {
-            int byteRate = sampleRate * channels * bitsPerSample / 8;
-            short blockAlign = (short)(channels * bitsPerSample / 8);
-
-            await fileStream.WriteStringAsync("RIFF", System.Text.Encoding.ASCII, cancellationToken);
-            await fileStream.WriteInt32Async((int)(36 + dataLength), cancellationToken);   // will be patched
-            await fileStream.WriteStringAsync("WAVE", System.Text.Encoding.ASCII, cancellationToken);
-            await fileStream.WriteStringAsync("fmt ", System.Text.Encoding.ASCII, cancellationToken);
-            await fileStream.WriteInt32Async(16, cancellationToken);                       // PCM fmt chunk size
-            await fileStream.WriteInt16Async(1, cancellationToken);                        // PCM
-            await fileStream.WriteInt16Async((short)channels, cancellationToken);
-            await fileStream.WriteInt32Async(sampleRate, cancellationToken);
-            await fileStream.WriteInt32Async(byteRate, cancellationToken);
-            await fileStream.WriteInt16Async(blockAlign, cancellationToken);
-            await fileStream.WriteInt16Async((short)bitsPerSample, cancellationToken);
-            await fileStream.WriteStringAsync("data", System.Text.Encoding.ASCII, cancellationToken);
-            await fileStream.WriteInt32Async((int)dataLength, cancellationToken);
-        }
-
-        private static async Task PatchHeaderAsync(
-            FileStream fileStream,
-            long dataBytes,
-            CancellationToken cancellationToken = default)
-        {
-            fileStream.Position = DataSizeOffset;
-            await fileStream.WriteInt32Async((int)dataBytes, cancellationToken);
-
-            // RIFF size = 36 + dataBytes (for 44-byte header)
-            fileStream.Position = RiffSizeOffset;
-            await fileStream.WriteInt32Async((int)(36 + dataBytes), cancellationToken);
-
-            fileStream.Position = fileStream.Length;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    if(running)
-                    {
-                        // This should be async proper
-                        StopRecordingAsync(CancellationToken.None).GetAwaiter().GetResult();
-                    }
-
-                    writerTask = null;
-                }
-
-                disposed = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
     }
 }

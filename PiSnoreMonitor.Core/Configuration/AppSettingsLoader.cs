@@ -1,5 +1,5 @@
-﻿using PiSnoreMonitor.Core.Services;
-using System.Text.Json;
+﻿using System.Text.Json;
+using PiSnoreMonitor.Core.Services;
 
 namespace PiSnoreMonitor.Core.Configuration
 {
@@ -7,7 +7,7 @@ namespace PiSnoreMonitor.Core.Configuration
     {
         private static T? _appSettings;
 
-        private readonly JsonSerializerOptions DefaultJsonSerializerOptions = new JsonSerializerOptions
+        private readonly JsonSerializerOptions defaultJsonSerializerOptions = new JsonSerializerOptions
         {
             WriteIndented = true
         };
@@ -22,14 +22,14 @@ namespace PiSnoreMonitor.Core.Configuration
             var path = ioService.GetSpecialPath(Enums.SpecialPaths.AppUserStorage);
             path = ioService.CombinePaths(path, "config.json");
 
-            if(ioService.Exists(path))
+            if (ioService.Exists(path))
             {
                 try
                 {
                     var json = await ioService.ReadAllTextAsync(path, cancellationToken);
                     var appSettings = JsonSerializer.Deserialize<T>(json);
                     _appSettings = appSettings;
-                    return (appSettings ?? Activator.CreateInstance<T>());
+                    return appSettings ?? Activator.CreateInstance<T>();
                 }
                 catch (JsonException)
                 {
@@ -49,7 +49,7 @@ namespace PiSnoreMonitor.Core.Configuration
             var fileInfo = new FileInfo(path);
             ioService.CreateDirectory(fileInfo.Directory!.FullName);
 
-            var json = JsonSerializer.Serialize(_appSettings, DefaultJsonSerializerOptions);
+            var json = JsonSerializer.Serialize(_appSettings, defaultJsonSerializerOptions);
             await ioService.WriteAllTextAsync(path, json, cancellationToken);
         }
     }

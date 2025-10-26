@@ -1,21 +1,14 @@
-﻿
-namespace PiSnoreMonitor.Core.Services
+﻿namespace PiSnoreMonitor.Core.Services
 {
-    public class SystemMonitor : ISystemMonitor
+    public class SystemMonitor(
+        IMemoryUsageSampler memoryUsageSampler,
+        ICpuUsageSampler cpuUsageSampler) : ISystemMonitor
     {
-        public event EventHandler<SystemMonitorStatusEventArgs>? OnSystemStatusUpdate;
-
-        private readonly IMemoryUsageSampler _memoryUsageSampler;
-        private readonly ICpuUsageSampler _cpuUsageSampler;
+        private readonly IMemoryUsageSampler _memoryUsageSampler = memoryUsageSampler;
+        private readonly ICpuUsageSampler _cpuUsageSampler = cpuUsageSampler;
         private System.Timers.Timer? _monitorTimer;
 
-        public SystemMonitor(
-            IMemoryUsageSampler memoryUsageSampler,
-            ICpuUsageSampler cpuUsageSampler)
-        {
-            _memoryUsageSampler = memoryUsageSampler;
-            _cpuUsageSampler = cpuUsageSampler;
-        }
+        public event EventHandler<SystemMonitorStatusEventArgs>? OnSystemStatusUpdate;
 
         public void StartMonitoring()
         {

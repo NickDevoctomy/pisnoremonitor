@@ -1,4 +1,4 @@
-﻿using PiSnoreMonitor.Services.Effects.Parameters;
+﻿using PiSnoreMonitor.Core.Services.Effects.Parameters;
 
 namespace PiSnoreMonitor.Core.Services.Effects
 {

@@ -1,5 +1,5 @@
 ﻿using PiSnoreMonitor.Core.Services.Effects;
-using PiSnoreMonitor.Services.Effects.Parameters;
+using PiSnoreMonitor.Core.Services.Effects.Parameters;
 
 namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
 {
@@ -76,8 +76,10 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
                     int nearZeroCount = 0;
                     for (int i = 0; i < sampleCount; i++)
                     {
-                        if (Math.Abs(samples[i]) < 10) // Very small threshold for numerical precision
+                        if (Math.Abs(samples[i]) < 10)
+                        {
                             nearZeroCount++;
+                        }
                     }
 
                     // At least 99% should be near zero
@@ -156,8 +158,6 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
                 }
             }
         }
-
-
 
         [Fact]
         public void GivenHpfEffect_AndMaximumAmplitudeSignal_WhenProcessCalled_ThenClippingIsHandled()

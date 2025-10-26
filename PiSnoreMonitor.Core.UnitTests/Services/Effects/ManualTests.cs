@@ -1,13 +1,12 @@
-﻿using PiSnoreMonitor.Core.Data;
+﻿using System.Text;
+using PiSnoreMonitor.Core.Data;
 using PiSnoreMonitor.Core.Services.Effects;
-using PiSnoreMonitor.Services.Effects.Parameters;
-using System.Text;
+using PiSnoreMonitor.Core.Services.Effects.Parameters;
 
 namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
 {
     public class ManualTests
     {
-
         [Theory]
         [InlineData("Data/Wavs/Unprocessed1.wav", "Data/Output/HpfEffect-Processed1.wav")]
         public void GivenWavFile_WhenHpfEffectApplied_ThenOutputIsFiltered(
@@ -16,7 +15,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
         {
             // Arrange
             var sut = new HpfEffect();
-            
+
             // Set up HpfEffect with specific parameters for testing
             var cutoffParam = new FloatParameter("CutoffFrequency", 12.0f);
             var sampleRateParam = new FloatParameter("SampleRate", 44100);
@@ -24,11 +23,11 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
 
             // Load WAV file
             var wavData = LoadWavFile(inputFileName);
-            
+
             // Act
             // Process the audio data through the HpfEffect
             var processedData = sut.Process(wavData.AudioData, wavData.AudioData.Length, wavData.Channels);
-            
+
             // Create output WAV with same format but processed audio data
             var outputWavData = new WavData
             {
@@ -37,23 +36,21 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
                 BitsPerSample = wavData.BitsPerSample,
                 AudioData = processedData
             };
-            
+
             // Save processed WAV file
             SaveWavFile(outputFileName, outputWavData);
-            
+
             // Assert
             // Manual verification - check that files exist and have expected properties
             Assert.True(File.Exists(inputFileName), $"Input file {inputFileName} should exist");
             Assert.True(File.Exists(outputFileName), $"Output file {outputFileName} should be created");
-            
+
             // Verify output file is not empty and has reasonable size
             var inputFileInfo = new FileInfo(inputFileName);
             var outputFileInfo = new FileInfo(outputFileName);
-            
+
             Assert.True(outputFileInfo.Length > 44, "Output file should contain WAV header + data");
-            //Assert.True(Math.Abs(outputFileInfo.Length - inputFileInfo.Length) < 100, 
-            //    "Output file should be similar size to input file");
-            
+
             Console.WriteLine($"Processed {inputFileName} -> {outputFileName}");
             Console.WriteLine($"Input size: {inputFileInfo.Length} bytes");
             Console.WriteLine($"Output size: {outputFileInfo.Length} bytes");
@@ -123,21 +120,30 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             Console.WriteLine($"WAV Info: {wavData.SampleRate}Hz, {wavData.Channels} channels, {wavData.BitsPerSample} bits");
         }
 
-        private WavData LoadWavFile(string filePath)
+        private static WavData LoadWavFile(string filePath)
         {
             using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             using var br = new BinaryReader(fs);
 
             // Read WAV header
             var riff = Encoding.ASCII.GetString(br.ReadBytes(4)); // "RIFF"
-            if (riff != "RIFF") throw new InvalidDataException("Not a valid WAV file - missing RIFF header");
+            if (riff != "RIFF")
+            {
+                throw new InvalidDataException("Not a valid WAV file - missing RIFF header");
+            }
 
             var fileSize = br.ReadInt32(); // File size
             var wave = Encoding.ASCII.GetString(br.ReadBytes(4)); // "WAVE"
-            if (wave != "WAVE") throw new InvalidDataException("Not a valid WAV file - missing WAVE header");
+            if (wave != "WAVE")
+            {
+                throw new InvalidDataException("Not a valid WAV file - missing WAVE header");
+            }
 
             var fmt = Encoding.ASCII.GetString(br.ReadBytes(4)); // "fmt "
-            if (fmt != "fmt ") throw new InvalidDataException("Not a valid WAV file - missing fmt chunk");
+            if (fmt != "fmt ")
+            {
+                throw new InvalidDataException("Not a valid WAV file - missing fmt chunk");
+            }
 
             var fmtSize = br.ReadInt32(); // Format chunk size
             var audioFormat = br.ReadInt16(); // Audio format (1 = PCM)
@@ -163,7 +169,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
                 {
                     // Read audio data
                     var audioData = br.ReadBytes(chunkSize);
-                    
+
                     return new WavData
                     {
                         SampleRate = sampleRate,
@@ -182,7 +188,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             throw new InvalidDataException("No data chunk found in WAV file");
         }
 
-        private void SaveWavFile(string filePath, WavData wavData)
+        private static void SaveWavFile(string filePath, WavData wavData)
         {
             // Ensure output directory exists
             var directory = Path.GetDirectoryName(filePath);
@@ -224,9 +230,12 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
         private class WavData
         {
             public int SampleRate { get; set; }
+
             public int Channels { get; set; }
+
             public int BitsPerSample { get; set; }
-            public byte[] AudioData { get; set; } = [];
+
+            public byte[] AudioData { get; set; } = Array.Empty<byte>();
         }
     }
 }

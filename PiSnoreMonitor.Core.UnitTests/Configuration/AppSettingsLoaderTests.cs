@@ -1,6 +1,6 @@
-﻿using Moq;
+﻿using System.Reflection;
+using Moq;
 using PiSnoreMonitor.Core.Configuration;
-using System.Reflection;
 
 namespace PiSnoreMonitor.Core.UnitTests.Configuration
 {
@@ -12,6 +12,7 @@ namespace PiSnoreMonitor.Core.UnitTests.Configuration
             var field = typeof(AppSettingsLoader<AppSettings>).GetField("_appSettings", BindingFlags.NonPublic | BindingFlags.Static);
             field?.SetValue(null, null);
         }
+
         [Fact]
         public async Task GivenNoSettingsExist_WhenLoadAsync_ThenDefaultSettingsReturned()
         {

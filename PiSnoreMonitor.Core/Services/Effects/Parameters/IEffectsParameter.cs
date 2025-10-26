@@ -1,4 +1,4 @@
-﻿namespace PiSnoreMonitor.Services.Effects.Parameters
+﻿namespace PiSnoreMonitor.Core.Services.Effects.Parameters
 {
     public interface IEffectsParameter
     {

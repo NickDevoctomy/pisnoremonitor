@@ -1,5 +1,5 @@
-using PiSnoreMonitor.Core.Services.Effects;
-using PiSnoreMonitor.Services.Effects.Parameters;
+﻿using PiSnoreMonitor.Core.Services.Effects;
+using PiSnoreMonitor.Core.Services.Effects.Parameters;
 
 namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
 {
@@ -305,14 +305,14 @@ namespace PiSnoreMonitor.Core.UnitTests.Services.Effects
             var gain1Param = new FloatParameter("Gain", 2.0f);
             effect.SetParameters(gain1Param);
             var result1 = effect.Process(input, input.Length, 1);
-            
+
             Assert.Equal(2.0f, effect.GetParameters()[0].AsFloatParameter()!.Value);
 
             // Act & Assert - Second gain
             var gain2Param = new FloatParameter("Gain", 0.5f);
             effect.SetParameters(gain2Param);
             var result2 = effect.Process(input, input.Length, 1);
-            
+
             Assert.Equal(0.5f, effect.GetParameters()[0].AsFloatParameter()!.Value);
 
             // Results should be different due to different gains

@@ -2,7 +2,8 @@
 {
     public class PooledBlock
     {
-        public byte[] Buffer = [];
-        public int Count;
+        public byte[] Buffer { get; set; } = Array.Empty<byte>();
+
+        public int Count { get; set; }
     }
 }
