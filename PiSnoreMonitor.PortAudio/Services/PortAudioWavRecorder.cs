@@ -272,10 +272,10 @@ namespace PiSnoreMonitor.Services
             int byteRate = sampleRate * channels * bitsPerSample / 8;
             short blockAlign = (short)(channels * bitsPerSample / 8);
 
-            await fileStream.WriteStringAsync("RIFF", cancellationToken);
+            await fileStream.WriteStringAsync("RIFF", System.Text.Encoding.ASCII, cancellationToken);
             await fileStream.WriteInt32Async((int)(36 + dataLength), cancellationToken);   // will be patched
-            await fileStream.WriteStringAsync("WAVE", cancellationToken);
-            await fileStream.WriteStringAsync("fmt ", cancellationToken);
+            await fileStream.WriteStringAsync("WAVE", System.Text.Encoding.ASCII, cancellationToken);
+            await fileStream.WriteStringAsync("fmt ", System.Text.Encoding.ASCII, cancellationToken);
             await fileStream.WriteInt32Async(16, cancellationToken);                       // PCM fmt chunk size
             await fileStream.WriteInt16Async(1, cancellationToken);                        // PCM
             await fileStream.WriteInt16Async((short)channels, cancellationToken);
@@ -283,7 +283,7 @@ namespace PiSnoreMonitor.Services
             await fileStream.WriteInt32Async(byteRate, cancellationToken);
             await fileStream.WriteInt16Async(blockAlign, cancellationToken);
             await fileStream.WriteInt16Async((short)bitsPerSample, cancellationToken);
-            await fileStream.WriteStringAsync("data", cancellationToken);
+            await fileStream.WriteStringAsync("data", System.Text.Encoding.ASCII, cancellationToken);
             await fileStream.WriteInt32Async((int)dataLength, cancellationToken);
         }
 

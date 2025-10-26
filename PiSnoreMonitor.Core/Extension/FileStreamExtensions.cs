@@ -23,9 +23,10 @@
         public static async Task WriteStringAsync(
             this FileStream fs,
             string value,
+            System.Text.Encoding encoding,
             CancellationToken cancellationToken = default)
         {
-            var bytes = System.Text.Encoding.ASCII.GetBytes(value);
+            var bytes = encoding.GetBytes(value);
             await fs.WriteAsync(bytes, cancellationToken);
         }
     }
