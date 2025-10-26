@@ -5,9 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PiSnoreMonitor.Core.Configuration;
 using PiSnoreMonitor.Core.Extensions;
-using PiSnoreMonitor.Core.Services;
 using PiSnoreMonitor.PortAudio.Extensions;
-using PiSnoreMonitor.Services;
 using PiSnoreMonitor.ViewModels;
 using PiSnoreMonitor.Views;
 using Serilog;
@@ -76,8 +74,6 @@ namespace PiSnoreMonitor
                 builder.ClearProviders();
                 builder.AddSerilog(Log.Logger);
             });
-
-            PortAudioSharp.PortAudio.Initialize(); // Initialize PortAudio library
         }
     }
 }

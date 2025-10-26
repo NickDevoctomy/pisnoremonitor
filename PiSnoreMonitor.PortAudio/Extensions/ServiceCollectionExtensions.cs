@@ -10,6 +10,9 @@ namespace PiSnoreMonitor.PortAudio.Extensions
         {
             services.AddSingleton<IWavRecorderFactory, PortAudioWavRecorderFactory>();
             services.AddSingleton<IAudioInputDeviceEnumeratorService, PortAudioInputDeviceEnumeratorService>();
+
+            PortAudioSharp.PortAudio.Initialize(); // Initialize PortAudio library
+
             return services;
         }
     }
