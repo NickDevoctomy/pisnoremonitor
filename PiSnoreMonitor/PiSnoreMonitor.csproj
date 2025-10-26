@@ -34,5 +34,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PiSnoreMonitor.Core\PiSnoreMonitor.Core.csproj" />
+    <ProjectReference Include="..\PiSnoreMonitor.HardwareInfo\PiSnoreMonitor.HardwareInfo.csproj" />
+    <ProjectReference Include="..\PiSnoreMonitor.PortAudio\PiSnoreMonitor.PortAudio.csproj" />
   </ItemGroup>
 </Project>

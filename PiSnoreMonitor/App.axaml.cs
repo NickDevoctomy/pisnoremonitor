@@ -3,11 +3,13 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using PiSnoreMonitor.Configuration;
+using PiSnoreMonitor.Core.Configuration;
+using PiSnoreMonitor.Core.Extensions;
+using PiSnoreMonitor.Core.Services;
+using PiSnoreMonitor.PortAudio.Extensions;
 using PiSnoreMonitor.Services;
 using PiSnoreMonitor.ViewModels;
 using PiSnoreMonitor.Views;
-using PortAudioSharp;
 using Serilog;
 using System;
 using System.IO;
@@ -58,15 +60,9 @@ namespace PiSnoreMonitor
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
 
-            services.AddSingleton<ICpuUsageSampler, HardwareInfoCpuUsageSampler>();
-            services.AddSingleton<IMemoryUsageSampler, HardwareInfoMemoryUsageSampler>();
-            services.AddSingleton<ISystemMonitor, SystemMonitor>();
-            services.AddSingleton<IStorageService, StorageService>();
-            services.AddSingleton<IWavRecorderFactory, PortAudioWavRecorderFactory>();
-            services.AddSingleton<IAudioInputDeviceEnumeratorService, PortAudioInputDeviceEnumeratorService>();
-            services.AddSingleton<IIoService, IoService>();
-            services.AddSingleton<IAppSettingsLoader, AppSettingsLoader>();
-            services.AddSingleton<ISideCarWriterService, SideCarWriterService>();
+            services.AddPiSnoreMonitorCore();
+            services.AddHardwareInfo();
+            services.AddPortAudio();
 
             // Register ViewModels
             services.AddTransient<MainWindowViewModel>();
@@ -81,7 +77,7 @@ namespace PiSnoreMonitor
                 builder.AddSerilog(Log.Logger);
             });
 
-            PortAudio.Initialize(); // Initialize PortAudio library
+            PortAudioSharp.PortAudio.Initialize(); // Initialize PortAudio library
         }
     }
 }

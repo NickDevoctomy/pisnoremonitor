@@ -3,10 +3,10 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
-using PiSnoreMonitor.Configuration;
 using PiSnoreMonitor.Controls;
+using PiSnoreMonitor.Core.Configuration;
+using PiSnoreMonitor.Core.Services;
 using PiSnoreMonitor.Extensions;
-using PiSnoreMonitor.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -20,7 +20,7 @@ namespace PiSnoreMonitor.ViewModels
     public partial class MainWindowViewModel : ViewModelBase
     {
         private readonly ILogger<MainWindowViewModel>? _logger;
-        private readonly IAppSettingsLoader? _appSettingsLoader;
+        private readonly IAppSettingsLoader<AppSettings>? _appSettingsLoader;
         private readonly ISystemMonitor? _systemMonitor;
         private readonly IStorageService? _storageService;
         private readonly IWavRecorderFactory? _wavRecorderFactory;
@@ -76,7 +76,7 @@ namespace PiSnoreMonitor.ViewModels
         private AppSettings? appSettings;
 
         [ObservableProperty]
-        private ObservableCollection<AudioInputDevice> audioInputDevices = [];
+        private ObservableCollection<Core.Services.AudioInputDevice> audioInputDevices = [];
 
         [ObservableProperty]
         private int selectedAudioInputDeviceId = 0;
@@ -93,7 +93,7 @@ namespace PiSnoreMonitor.ViewModels
 
         public MainWindowViewModel(
             ILogger<MainWindowViewModel> logger,
-            IAppSettingsLoader appSettingsLoader,
+            IAppSettingsLoader<AppSettings> appSettingsLoader,
             ISystemMonitor systemMonitor,
             IStorageService storageService,
             IWavRecorderFactory wavRecorderFactory,
