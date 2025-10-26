@@ -4,6 +4,16 @@ namespace PiSnoreMonitor.Core.Services
 {
     public class IoService : IIoService
     {
+        public string CombinePaths(params string[] paths)
+        {
+            return Path.Combine(paths);
+        }
+
+        public bool Exists(string path)
+        {
+            return Path.Exists(path);
+        }
+
         public string GetSpecialPath(SpecialPaths specialPath)
         {
             switch(specialPath)

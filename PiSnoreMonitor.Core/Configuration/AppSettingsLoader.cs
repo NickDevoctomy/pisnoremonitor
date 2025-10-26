@@ -20,9 +20,9 @@ namespace PiSnoreMonitor.Core.Configuration
             }
 
             var path = ioService.GetSpecialPath(Enums.SpecialPaths.AppUserStorage);
-            path = Path.Combine(path, "config.json");
+            path = ioService.CombinePaths(path, "config.json");
 
-            if(Path.Exists(path))
+            if(ioService.Exists(path))
             {
                 var json = await ioService.ReadAllTextAsync(path, cancellationToken);
                 var appSettings = JsonSerializer.Deserialize<T>(json);

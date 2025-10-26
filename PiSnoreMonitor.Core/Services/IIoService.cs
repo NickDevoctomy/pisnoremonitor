@@ -6,6 +6,10 @@ namespace PiSnoreMonitor.Core.Services
     {
         public string GetSpecialPath(SpecialPaths specialPath);
 
+        public bool Exists(string path);
+
+        public string CombinePaths(params string[] paths);
+
         public Task<string> ReadAllTextAsync(
             string path,
             CancellationToken cancellationToken);
