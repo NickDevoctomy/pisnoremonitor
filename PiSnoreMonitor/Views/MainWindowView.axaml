@@ -100,7 +100,20 @@
 			</TabItem>
 
             <TabItem Header="Review" FontSize="13">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="32"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="💽 Storage Device" FontWeight="Bold" Margin="8,8,0,0" />
+						<ComboBox Margin="16,0,0,0"
+								  ItemsSource="{Binding StorageDevices}"
+								  SelectedItem="{Binding SelectedStorageDevice, Mode=TwoWay}">
+						</ComboBox>
+                    </StackPanel>
+                </Grid>
             </TabItem>
 
 			<TabItem Header="Configuration"

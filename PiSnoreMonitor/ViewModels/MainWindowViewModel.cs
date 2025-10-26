@@ -68,16 +68,22 @@ namespace PiSnoreMonitor.ViewModels
         private string cpuUsageText = "🖥️ ?%";
 
         [ObservableProperty]
-        private AppSettings? appSettings;
+        private AppSettings? appSettings = new AppSettings();
 
         [ObservableProperty]
-        private ObservableCollection<Core.Services.AudioInputDevice> audioInputDevices = [];
+        private ObservableCollection<AudioInputDevice> audioInputDevices = [];
 
         [ObservableProperty]
         private int selectedAudioInputDeviceId = 0;
 
         [ObservableProperty]
         private StereoAmplitudeDisplay? stereoAmplitudeDisplay;
+
+        [ObservableProperty]
+        private List<string> storageDevices = new List<string>();
+
+        [ObservableProperty]
+        private string selectedStorageDevice = string.Empty;
 
         private DateTime _startedRecordingAt;
         private int _updateCounter = 0;
@@ -151,6 +157,9 @@ namespace PiSnoreMonitor.ViewModels
             var selectedAudioInputDeviceName = AppSettings.SelectedAudioInputDeviceName;
             var selectedDevice = AudioInputDevices.SingleOrDefault(x => x.Name == selectedAudioInputDeviceName);
             SelectedAudioInputDeviceId = selectedDevice?.Id ?? PortAudioSharp.PortAudio.DefaultInputDevice;
+
+            StorageDevices = _ioService!.GetRemovableStorageDrivePaths();
+            SelectedStorageDevice = StorageDevices[0];
 
             _logger?.LogInformation("MainWindowViewModel initialization completed");
         }
