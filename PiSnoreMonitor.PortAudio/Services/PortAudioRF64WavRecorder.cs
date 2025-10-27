@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
@@ -12,17 +12,18 @@ using PortAudioSharp;
 namespace PiSnoreMonitor.PortAudio.Services
 {
     [ExcludeFromCodeCoverage(Justification = "Not going to attempt to abstract out PortAudio.")]
-    public class PortAudioWavRecorder(
+    public class PortAudioRF64WavRecorder(
         int deviceId,
         int sampleRate,
         int channels,
         uint framesPerBuffer,
         IEffectsBus? effectsBus,
-        ILogger<PortAudioWavRecorder> logger) : IWavRecorder
+        ILogger<PortAudioRF64WavRecorder> logger) : IWavRecorder
     {
-        // WAV constants for simple PCM header positions (no extra chunks)
-        private const int RiffSizeOffset = 4;   // 4 bytes, little-endian
-        private const int DataSizeOffset = 40;  // 4 bytes, little-endian
+        // RF64 constants for unlimited file size support
+        private const int RF64HeaderSize = 80;          // Total RF64 header size
+        private const int DS64RiffSizeOffset = 20;      // 8 bytes, little-endian
+        private const int DS64DataSizeOffset = 28;      // 8 bytes, little-endian
 
         private readonly TimeSpan headerRefreshInterval = TimeSpan.FromSeconds(5);
         private readonly Channel<PooledBlock> channel =
@@ -40,7 +41,7 @@ namespace PiSnoreMonitor.PortAudio.Services
         private DateTime lastHeaderRefreshUtc;
         private bool disposed;
 
-        ~PortAudioWavRecorder()
+        ~PortAudioRF64WavRecorder()
         {
             Dispose(disposing: false);
         }
@@ -51,8 +52,8 @@ namespace PiSnoreMonitor.PortAudio.Services
             string filePath,
             CancellationToken cancellationToken = default)
         {
-            logger.LogInformation("WavRecorder:StartRecordingAsync - {filePath}", filePath);
-            ObjectDisposedException.ThrowIf(disposed, nameof(PortAudioWavRecorder));
+            logger.LogInformation("RF64WavRecorder:StartRecordingAsync - {filePath}", filePath);
+            ObjectDisposedException.ThrowIf(disposed, nameof(PortAudioRF64WavRecorder));
 
             if (running)
             {
@@ -83,7 +84,7 @@ namespace PiSnoreMonitor.PortAudio.Services
                 bufferSize: 1 << 16,
                 FileOptions.Asynchronous);
 
-            await WriteWavHeaderAsync(
+            await WriteRF64HeaderAsync(
                 outputFileStream,
                 sampleRate,
                 channels,
@@ -115,7 +116,7 @@ namespace PiSnoreMonitor.PortAudio.Services
 
         public async Task StopRecordingAsync(CancellationToken cancellationToken = default)
         {
-            logger.LogInformation($"WavRecorder:StopRecordingAsync");
+            logger.LogInformation($"RF64WavRecorder:StopRecordingAsync");
             if (!running)
             {
                 return;
@@ -126,7 +127,7 @@ namespace PiSnoreMonitor.PortAudio.Services
 
             try
             {
-                logger.LogInformation($"WavRecorder:StopRecordingAsync - Stopping PortAudio stream.");
+                logger.LogInformation($"RF64WavRecorder:StopRecordingAsync - Stopping PortAudio stream.");
                 portAudioStream?.Stop();
             }
             catch
@@ -136,7 +137,7 @@ namespace PiSnoreMonitor.PortAudio.Services
 
             // Add a small delay to allow any pending callbacks to complete
             // This ensures we don't lose audio data that's still being processed
-            logger.LogInformation($"WavRecorder:StopRecordingAsync - Allowing drain period for pending audio data.");
+            logger.LogInformation($"RF64WavRecorder:StopRecordingAsync - Allowing drain period for pending audio data.");
             await Task.Delay(100, cancellationToken);
 
             // Now set running to false to prevent new data from being queued
@@ -144,7 +145,7 @@ namespace PiSnoreMonitor.PortAudio.Services
 
             try
             {
-                logger.LogInformation($"WavRecorder:StopRecordingAsync - Closing PortAudio stream.");
+                logger.LogInformation($"RF64WavRecorder:StopRecordingAsync - Closing PortAudio stream.");
                 portAudioStream?.Close();
             }
             catch
@@ -154,12 +155,12 @@ namespace PiSnoreMonitor.PortAudio.Services
 
             portAudioStream = null;
 
-            logger.LogInformation($"WavRecorder:StopRecordingAsync - Completing channel writer.");
+            logger.LogInformation($"RF64WavRecorder:StopRecordingAsync - Completing channel writer.");
             channel.Writer.TryComplete();
 
             if (writerTask != null)
             {
-                logger.LogInformation($"WavRecorder:StopRecordingAsync - Waiting for writer task.");
+                logger.LogInformation($"RF64WavRecorder:StopRecordingAsync - Waiting for writer task.");
                 try
                 {
                     await writerTask!;
@@ -170,10 +171,10 @@ namespace PiSnoreMonitor.PortAudio.Services
                 }
             }
 
-            logger.LogInformation($"WavRecorder:StopRecordingAsync - Closing and flushing output stream.");
+            logger.LogInformation($"RF64WavRecorder:StopRecordingAsync - Closing and flushing output stream.");
             if (outputFileStream != null)
             {
-                await PatchHeaderAsync(outputFileStream, dataBytes, cancellationToken);
+                await PatchRF64HeaderAsync(outputFileStream, dataBytes, cancellationToken);
                 await outputFileStream.FlushAsync(cancellationToken);
                 outputFileStream.Dispose();
             }
@@ -206,7 +207,7 @@ namespace PiSnoreMonitor.PortAudio.Services
             }
         }
 
-        private static async Task WriteWavHeaderAsync(
+        private static async Task WriteRF64HeaderAsync(
             FileStream fileStream,
             int sampleRate,
             int channels,
@@ -217,32 +218,45 @@ namespace PiSnoreMonitor.PortAudio.Services
             int byteRate = sampleRate * channels * bitsPerSample / 8;
             short blockAlign = (short)(channels * bitsPerSample / 8);
 
-            await fileStream.WriteStringAsync("RIFF", System.Text.Encoding.ASCII, cancellationToken);
-            await fileStream.WriteUInt32Async((uint)(36 + dataLength), cancellationToken);   // will be patched
+            // RF64 header (replaces RIFF)
+            await fileStream.WriteStringAsync("RF64", System.Text.Encoding.ASCII, cancellationToken);
+            await fileStream.WriteUInt32Async(0xFFFFFFFF, cancellationToken);  // RF64 placeholder (-1 as uint32)
             await fileStream.WriteStringAsync("WAVE", System.Text.Encoding.ASCII, cancellationToken);
+
+            // ds64 chunk MUST come immediately after WAVE, before fmt
+            await fileStream.WriteStringAsync("ds64", System.Text.Encoding.ASCII, cancellationToken);
+            await fileStream.WriteInt32Async(28, cancellationToken);  // ds64 chunk size (28 bytes)
+            await fileStream.WriteInt64Async(72 + dataLength, cancellationToken);  // RF64 file size (header - 8 + data)
+            await fileStream.WriteInt64Async(dataLength, cancellationToken);       // data chunk size as 64-bit
+            await fileStream.WriteInt64Async(0, cancellationToken);                // sample count (0 = not used)
+            await fileStream.WriteInt32Async(0, cancellationToken);                // table length (no additional chunks)
+
+            // fmt chunk (standard WAV format chunk)
             await fileStream.WriteStringAsync("fmt ", System.Text.Encoding.ASCII, cancellationToken);
             await fileStream.WriteInt32Async(16, cancellationToken);                       // PCM fmt chunk size
-            await fileStream.WriteInt16Async(1, cancellationToken);                        // PCM
+            await fileStream.WriteInt16Async(1, cancellationToken);                        // PCM format
             await fileStream.WriteInt16Async((short)channels, cancellationToken);
             await fileStream.WriteInt32Async(sampleRate, cancellationToken);
             await fileStream.WriteInt32Async(byteRate, cancellationToken);
             await fileStream.WriteInt16Async(blockAlign, cancellationToken);
             await fileStream.WriteInt16Async((short)bitsPerSample, cancellationToken);
+
+            // data chunk header
             await fileStream.WriteStringAsync("data", System.Text.Encoding.ASCII, cancellationToken);
-            await fileStream.WriteUInt32Async((uint)dataLength, cancellationToken);
+            await fileStream.WriteUInt32Async(0xFFFFFFFF, cancellationToken);  // RF64 placeholder (-1 as uint32)
         }
 
-        private static async Task PatchHeaderAsync(
+        private static async Task PatchRF64HeaderAsync(
             FileStream fileStream,
             long dataBytes,
             CancellationToken cancellationToken = default)
         {
-            fileStream.Position = DataSizeOffset;
-            await fileStream.WriteUInt32Async((uint)dataBytes, cancellationToken);
+            // Update ds64 chunk with 64-bit values
+            fileStream.Position = DS64RiffSizeOffset;
+            await fileStream.WriteInt64Async(72 + dataBytes, cancellationToken);  // RF64 file size
 
-            // RIFF size = 36 + dataBytes (for 44-byte header)
-            fileStream.Position = RiffSizeOffset;
-            await fileStream.WriteUInt32Async((uint)(36 + dataBytes), cancellationToken);
+            fileStream.Position = DS64DataSizeOffset;
+            await fileStream.WriteInt64Async(dataBytes, cancellationToken);       // data size
 
             fileStream.Position = fileStream.Length;
         }
@@ -318,7 +332,7 @@ namespace PiSnoreMonitor.PortAudio.Services
                             var now = DateTime.UtcNow;
                             if (now - lastHeaderRefreshUtc >= headerRefreshInterval)
                             {
-                                await PatchHeaderAsync(
+                                await PatchRF64HeaderAsync(
                                     outputFileStream,
                                     dataBytes,
                                     cancellationToken);

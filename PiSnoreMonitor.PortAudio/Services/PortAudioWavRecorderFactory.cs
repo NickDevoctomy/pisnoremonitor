@@ -35,13 +35,13 @@ namespace PiSnoreMonitor.PortAudio.Services
                 effectsBus.Effects.Add(gainEffect);
             }
 
-            return new PortAudioWavRecorder(
+            return new PortAudioRF64WavRecorder(
                 deviceId,
                 appSettings.RecordingSampleRate,
                 stereo ? 2 : 1,
                 1024,
                 effectsBus.Effects.Count > 0 ? effectsBus : null,
-                serviceProvider.GetService<ILogger<PortAudioWavRecorder>>()!);
+                serviceProvider.GetService<ILogger<PortAudioRF64WavRecorder>>()!);
         }
     }
 }
