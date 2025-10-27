@@ -9,7 +9,9 @@
 		x:Class="PiSnoreMonitor.Views.MainWindowView"
 		x:DataType="vm:MainWindowViewModel"
 		Title="PiSnoreMonitor"
-		WindowStartupLocation="CenterScreen">
+		WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        WindowState="FullScreen">
 	<Design.DataContext>
 		<vm:MainWindowViewModel/>
 	</Design.DataContext>

@@ -36,10 +36,10 @@ namespace PiSnoreMonitor.Views
                 try
                 {
                     await vm.InitializeAsync(_loadCts.Token);
-                    if (vm.AppSettings!.StartInKioskMode)
+                    if (!vm.AppSettings!.StartInKioskMode)
                     {
-                        this.WindowState = WindowState.FullScreen;
-                        this.Topmost = true;
+                        this.WindowState = WindowState.Normal;
+                        this.Topmost = false;
                     }
                 }
                 catch (OperationCanceledException)
