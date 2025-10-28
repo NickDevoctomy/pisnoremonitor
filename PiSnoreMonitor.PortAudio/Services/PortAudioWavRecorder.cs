@@ -23,10 +23,11 @@ namespace PiSnoreMonitor.PortAudio.Services
         // WAV constants for simple PCM header positions (no extra chunks)
         private const int RiffSizeOffset = 4;   // 4 bytes, little-endian
         private const int DataSizeOffset = 40;  // 4 bytes, little-endian
+        private const int WriteChannelCapacity = 128;
 
         private readonly TimeSpan headerRefreshInterval = TimeSpan.FromSeconds(5);
         private readonly Channel<PooledBlock> channel =
-            Channel.CreateBounded<PooledBlock>(new BoundedChannelOptions(capacity: 32)
+            Channel.CreateBounded<PooledBlock>(new BoundedChannelOptions(capacity: WriteChannelCapacity)
             {
                 FullMode = BoundedChannelFullMode.DropOldest,
             });
@@ -37,6 +38,7 @@ namespace PiSnoreMonitor.PortAudio.Services
         private volatile bool running;
         private volatile bool stopping;
         private long dataBytes;
+        private long totalSamples; // Total samples recorded (per channel)
         private DateTime lastHeaderRefreshUtc;
         private bool disposed;
 
@@ -93,6 +95,7 @@ namespace PiSnoreMonitor.PortAudio.Services
             await outputFileStream.FlushAsync(cancellationToken);
 
             dataBytes = 0;
+            totalSamples = 0;
             lastHeaderRefreshUtc = DateTime.UtcNow;
             running = true;
             stopping = false;
@@ -301,7 +304,10 @@ namespace PiSnoreMonitor.PortAudio.Services
                     while (channel.Reader.TryRead(out var block))
                     {
                         var processedBlock = effectsBus?.Process(block, block.Count, channels) ?? block;
-                        WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs(processedBlock));
+
+                        // Calculate samples in this block (16-bit samples, so 2 bytes per sample per channel)
+                        long samplesInBlock = processedBlock.Count / (channels * 2);
+                        totalSamples += samplesInBlock;
 
                         try
                         {
@@ -325,6 +331,14 @@ namespace PiSnoreMonitor.PortAudio.Services
                                 await outputFileStream.FlushAsync(cancellationToken);
                                 lastHeaderRefreshUtc = now;
                             }
+
+                            WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs(
+                                processedBlock,
+                                totalSamples,
+                                sampleRate,
+                                channels,
+                                WriteChannelCapacity,
+                                channel.Reader.Count));
                         }
                         finally
                         {

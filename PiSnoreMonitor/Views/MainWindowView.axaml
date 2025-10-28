@@ -52,6 +52,7 @@
 			<TabItem Header="Record" FontSize="13">
 				<Grid>
 					<Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="16" />
 						<ColumnDefinition Width="*" />
 					</Grid.ColumnDefinitions>
 					<Grid.RowDefinitions>
@@ -59,6 +60,21 @@
 						<RowDefinition Height="*" />
 						<RowDefinition Height="{Binding StatusRowGridHeight}" />
 					</Grid.RowDefinitions>
+
+                    <controls:LevelMeter HorizontalAlignment="Stretch"
+                                         VerticalAlignment="Stretch"
+                                         Margin="0,8"
+                                         Maximum="{Binding ChannelUsageMax}"
+                                         Value="{Binding ChannelUsageValue}"
+                                         ShowMax="true">
+                        <controls:LevelMeter.TrackBrush>
+							<LinearGradientBrush StartPoint="0,0" EndPoint="0%,100%">
+								<GradientStop Color="Red" Offset="0.0"/>
+								<GradientStop Color="Orange" Offset="0.5"/>
+								<GradientStop Color="Green" Offset="1.0"/>
+							</LinearGradientBrush>
+						</controls:LevelMeter.TrackBrush>
+                    </controls:LevelMeter>
 
 					<controls:StereoAmplitudeDisplay HorizontalAlignment="Stretch"
 													 VerticalAlignment="Top"
@@ -68,6 +84,7 @@
 													 AmplitudeScale="1.5"
 													 SampleBarWidth="8"
 													 Grid.Row="0"
+                                                     Grid.Column="1"
 													 x:Name="StereoAmplitudeDisplayControl">
 					</controls:StereoAmplitudeDisplay>
 
@@ -78,10 +95,12 @@
 							HorizontalContentAlignment="Center"
 							VerticalContentAlignment="Center"
 							Grid.Row="1"
+                            Grid.ColumnSpan="2"
 							Width="150"
 							Height="100"/>
 
 					<Panel Grid.Row="2"
+                           Grid.ColumnSpan="2"
 						   Background="DarkGray"
 						   Margin="8">
 						<Grid VerticalAlignment="Center">

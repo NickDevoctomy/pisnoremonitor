@@ -1,4 +1,4 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
@@ -24,10 +24,11 @@ namespace PiSnoreMonitor.PortAudio.Services
         private const int RF64HeaderSize = 80;          // Total RF64 header size
         private const int DS64RiffSizeOffset = 20;      // 8 bytes, little-endian
         private const int DS64DataSizeOffset = 28;      // 8 bytes, little-endian
+        private const int WriteChannelCapacity = 128;
 
         private readonly TimeSpan headerRefreshInterval = TimeSpan.FromSeconds(5);
         private readonly Channel<PooledBlock> channel =
-            Channel.CreateBounded<PooledBlock>(new BoundedChannelOptions(capacity: 32)
+            Channel.CreateBounded<PooledBlock>(new BoundedChannelOptions(capacity: WriteChannelCapacity)
             {
                 FullMode = BoundedChannelFullMode.DropOldest,
             });
@@ -38,6 +39,7 @@ namespace PiSnoreMonitor.PortAudio.Services
         private volatile bool running;
         private volatile bool stopping;
         private long dataBytes;
+        private long totalSamples; // Total samples recorded (per channel)
         private DateTime lastHeaderRefreshUtc;
         private bool disposed;
 
@@ -94,6 +96,7 @@ namespace PiSnoreMonitor.PortAudio.Services
             await outputFileStream.FlushAsync(cancellationToken);
 
             dataBytes = 0;
+            totalSamples = 0;
             lastHeaderRefreshUtc = DateTime.UtcNow;
             running = true;
             stopping = false;
@@ -315,7 +318,10 @@ namespace PiSnoreMonitor.PortAudio.Services
                     while (channel.Reader.TryRead(out var block))
                     {
                         var processedBlock = effectsBus?.Process(block, block.Count, channels) ?? block;
-                        WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs(processedBlock));
+
+                        // Calculate samples in this block (16-bit samples, so 2 bytes per sample per channel)
+                        long samplesInBlock = processedBlock.Count / (channels * 2);
+                        totalSamples += samplesInBlock;
 
                         try
                         {
@@ -339,6 +345,14 @@ namespace PiSnoreMonitor.PortAudio.Services
                                 await outputFileStream.FlushAsync(cancellationToken);
                                 lastHeaderRefreshUtc = now;
                             }
+
+                            WavRecorderRecording?.Invoke(this, new WavRecorderRecordingEventArgs(
+                                processedBlock,
+                                totalSamples,
+                                sampleRate,
+                                channels,
+                                WriteChannelCapacity,
+                                channel.Reader.Count));
                         }
                         finally
                         {

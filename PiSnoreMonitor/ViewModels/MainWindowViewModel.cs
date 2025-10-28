@@ -59,9 +59,6 @@ namespace PiSnoreMonitor.ViewModels
         private string errorMessageText = string.Empty;
 
         [ObservableProperty]
-        private double amplitude = 0d;
-
-        [ObservableProperty]
         private string memoryUsageText = "🐏 ?/?";
 
         [ObservableProperty]
@@ -84,6 +81,12 @@ namespace PiSnoreMonitor.ViewModels
 
         [ObservableProperty]
         private string selectedStorageDevice = string.Empty;
+
+        [ObservableProperty]
+        private int channelUsageMax = 10;
+
+        [ObservableProperty]
+        private int channelUsageValue = 5;
 
         private DateTime _startedRecordingAt;
         private int _updateCounter = 0;
@@ -174,21 +177,16 @@ namespace PiSnoreMonitor.ViewModels
 
         private void WavRecorder_WavRecorderRecording(object? sender, WavRecorderRecordingEventArgs e)
         {
-            UpdateElapsedRecordingTime();
+            _sideCarInfo!.TotalDuration = e.TotalDuration;
+            ElapsedRecordingTimeText = e.TotalDuration.ToString(@"hh\:mm\:ss");
+            ChannelUsageMax = e.ChannelMaxBlocks;
+            ChannelUsageValue = e.ChannelCurBlocks;
             _updateCounter++;
             if (_updateCounter % 10 == 0)
             {
                 int channels = AppSettings?.EnableStereoRecording == true ? 2 : 1;
                 var (leftAmplitude, rightAmplitude) = e.CurrentBlock.CalculateAmplitude(0, channels);
-
-                // For now, use the maximum of left and right for backward compatibility
-                // In the future, you might want to use both values separately
-                Amplitude = Math.Max(leftAmplitude, rightAmplitude) * 100;
-
-                // Push amplitude values to the StereoAmplitudeDisplay
                 StereoAmplitudeDisplay?.PushSample(leftAmplitude, rightAmplitude);
-
-                UpdateElapsedRecordingTime();
             }
         }
 
@@ -201,18 +199,12 @@ namespace PiSnoreMonitor.ViewModels
             else
             {
                 ElapsedRecordingTimeText = "-";
-            }
-            
+            }          
         }
 
-        private void UpdateElapsedRecordingTime()
+        private void ClearElapsedRecordingTime()
         {
-            if (IsRecording)
-            {
-                var elapsed = DateTime.Now - _startedRecordingAt;
-                ElapsedRecordingTimeText = elapsed.ToString(@"hh\:mm\:ss");
-            }
-            else
+            if (!IsRecording)
             {
                 ElapsedRecordingTimeText = "-";
             }
@@ -286,8 +278,8 @@ namespace PiSnoreMonitor.ViewModels
                     DisplayErrorMessage("Storage Error", ex.Message);
                     return;
                 }
-                await _wavRecorder!.StartRecordingAsync(outputFilePath, CancellationToken.None);
                 _sideCarInfo = await _sideCarWriterService!.StartRecordingAsync(outputFilePath.Replace(".wav", ".sidecar.json"), CancellationToken.None);
+                await _wavRecorder!.StartRecordingAsync(outputFilePath, CancellationToken.None);
                 IsRecording = true;
                 ButtonBackground = Brushes.Red;
                 ButtonText = "Stop Recording";
@@ -296,7 +288,7 @@ namespace PiSnoreMonitor.ViewModels
                 _updateCounter = 0;
                 _startedRecordingAt = DateTime.Now;
                 UpdateStartedRecordingTime();
-                UpdateElapsedRecordingTime();
+                ClearElapsedRecordingTime();
                 _logger?.LogInformation("Recording started successfully");
             }
             else
@@ -311,10 +303,8 @@ namespace PiSnoreMonitor.ViewModels
                 StatusRowGridHeight = new GridLength(0);
 
                 UpdateStartedRecordingTime();
-                UpdateElapsedRecordingTime();
-                Amplitude = 0;
+                ClearElapsedRecordingTime();
 
-                // Clear the stereo amplitude display
                 StereoAmplitudeDisplay?.Clear();
 
                 _wavRecorder.WavRecorderRecording -= WavRecorder_WavRecorderRecording;

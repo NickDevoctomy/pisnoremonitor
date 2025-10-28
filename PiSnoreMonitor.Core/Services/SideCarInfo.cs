@@ -16,6 +16,8 @@ namespace PiSnoreMonitor.Core.Services
             ? StoppedRecordingAt.Value - StartedRecordingAt.Value
             : TimeSpan.Zero;
 
+        public TimeSpan? TotalDuration { get; set; }
+
         public bool Equals(SideCarInfo? other)
         {
             return
