@@ -23,7 +23,7 @@ namespace PiSnoreMonitor.PortAudio.Services
         // WAV constants for simple PCM header positions (no extra chunks)
         private const int RiffSizeOffset = 4;   // 4 bytes, little-endian
         private const int DataSizeOffset = 40;  // 4 bytes, little-endian
-        private const int WriteChannelCapacity = 128;
+        private const int WriteChannelCapacity = 32;
 
         private readonly TimeSpan headerRefreshInterval = TimeSpan.FromSeconds(5);
         private readonly Channel<PooledBlock> channel =

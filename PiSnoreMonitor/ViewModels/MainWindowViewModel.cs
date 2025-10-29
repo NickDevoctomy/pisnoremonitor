@@ -82,12 +82,6 @@ namespace PiSnoreMonitor.ViewModels
         [ObservableProperty]
         private string selectedStorageDevice = string.Empty;
 
-        [ObservableProperty]
-        private int channelUsageMax = 10;
-
-        [ObservableProperty]
-        private int channelUsageValue = 5;
-
         private DateTime _startedRecordingAt;
         private int _updateCounter = 0;
 
@@ -179,8 +173,6 @@ namespace PiSnoreMonitor.ViewModels
         {
             _sideCarInfo!.TotalDuration = e.TotalDuration;
             ElapsedRecordingTimeText = e.TotalDuration.ToString(@"hh\:mm\:ss");
-            ChannelUsageMax = e.ChannelMaxBlocks;
-            ChannelUsageValue = e.ChannelCurBlocks;
             _updateCounter++;
             if (_updateCounter % 10 == 0)
             {

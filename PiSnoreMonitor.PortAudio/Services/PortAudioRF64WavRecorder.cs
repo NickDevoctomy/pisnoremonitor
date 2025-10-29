@@ -24,7 +24,7 @@ namespace PiSnoreMonitor.PortAudio.Services
         private const int RF64HeaderSize = 80;          // Total RF64 header size
         private const int DS64RiffSizeOffset = 20;      // 8 bytes, little-endian
         private const int DS64DataSizeOffset = 28;      // 8 bytes, little-endian
-        private const int WriteChannelCapacity = 128;
+        private const int WriteChannelCapacity = 32;
 
         private readonly TimeSpan headerRefreshInterval = TimeSpan.FromSeconds(5);
         private readonly Channel<PooledBlock> channel =
