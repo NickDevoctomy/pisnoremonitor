@@ -349,7 +349,7 @@ namespace PiSnoreMonitor.PortAudio.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"WriterLoop exception: {ex}");
+                logger.LogError(ex, "WriterLoop exception");
             }
         }
     }
