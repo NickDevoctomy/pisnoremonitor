@@ -81,6 +81,12 @@
 							Width="150"
 							Height="100"/>
 
+<!--                    <controls:DayNightCycleView HorizontalAlignment="Stretch"
+                                                VerticalAlignment="Stretch"
+                                                Grid.Row="1">
+                        
+                    </controls:DayNightCycleView>-->
+
 					<Panel Grid.Row="2"
                            Grid.ColumnSpan="2"
 						   Background="DarkGray"
