@@ -33,7 +33,7 @@ namespace PiSnoreMonitor.ViewModels
         private IBrush buttonBackground = Brushes.LightGray;
 
         [ObservableProperty]
-        private DateTime currentDateTime = DateTime.Now;
+        private TimeSpan currentDateTime = new TimeSpan(DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
 
         [ObservableProperty]
         private string currentDateTimeText = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
@@ -124,8 +124,9 @@ namespace PiSnoreMonitor.ViewModels
 
         private void UiUpdateTimerElapsed(object? sender, ElapsedEventArgs e)
         {
-            CurrentDateTime = DateTime.Now;
-            CurrentDateTimeText = CurrentDateTime.ToString("dd-MM-yyyy HH:mm:ss");
+            var now = DateTime.Now;
+            CurrentDateTime = new TimeSpan(now.Hour, now.Minute, now.Second);
+            CurrentDateTimeText = now.ToString("dd-MM-yyyy HH:mm:ss");
         }
 
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
