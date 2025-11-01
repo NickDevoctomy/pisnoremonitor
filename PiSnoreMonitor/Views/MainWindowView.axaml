@@ -71,7 +71,11 @@
 													 x:Name="StereoAmplitudeDisplayControl">
 					</controls:StereoAmplitudeDisplay>
 
-					<Button HorizontalAlignment="Center"
+                    <controls:DayNightCycleView Grid.Row="1">
+                        
+                    </controls:DayNightCycleView>
+
+<!--					<Button HorizontalAlignment="Center"
 							Background="{Binding ButtonBackground}"
 							Content="{Binding ButtonText}"
 							Command="{Binding ToggleRecordingCommand}"
@@ -79,13 +83,7 @@
 							VerticalContentAlignment="Center"
 							Grid.Row="1"
 							Width="150"
-							Height="100"/>
-
-<!--                    <controls:DayNightCycleView HorizontalAlignment="Stretch"
-                                                VerticalAlignment="Stretch"
-                                                Grid.Row="1">
-                        
-                    </controls:DayNightCycleView>-->
+							Height="100"/>-->
 
 					<Panel Grid.Row="2"
                            Grid.ColumnSpan="2"
