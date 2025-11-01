@@ -270,14 +270,11 @@ namespace PiSnoreMonitor.Controls
             {
                 _starPositions.Clear();
 
-                // Calculate the sky area (above horizon)
-                var horizonY = bounds.Height * (1.0 - HorizonHeight);
-
                 // Generate random star positions in the sky area
                 for (int i = 0; i < NumberOfStars; i++)
                 {
-                    var x = _random.NextDouble() * bounds.Width;
-                    var y = _random.NextDouble() * horizonY; // Only in sky area, not below horizon
+                    var x = _random.NextDouble();
+                    var y = _random.NextDouble(); // Only in sky area, not below horizon
                     _starPositions.Add(new Point(x, y));
                 }
             }
@@ -298,10 +295,12 @@ namespace PiSnoreMonitor.Controls
             var starColor = Color.FromArgb((byte)(255 * starAlpha), Colors.White.R, Colors.White.G, Colors.White.B);
             var starBrush = new SolidColorBrush(starColor);
 
+            var horizonY = bounds.Height * (1.0 - HorizonHeight);
+
             // Draw each star as a small rectangle (pixel)
             foreach (var starPos in _starPositions)
             {
-                var starRect = new Rect(starPos.X, starPos.Y, 1, 1);
+                var starRect = new Rect(bounds.Width * starPos.X, horizonY * starPos.Y, 1, 1);
                 ctx.FillRectangle(starBrush, starRect);
             }
         }
