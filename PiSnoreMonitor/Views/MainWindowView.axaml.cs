@@ -54,5 +54,13 @@ namespace PiSnoreMonitor.Views
             _loadCts?.Dispose();
             _loadCts = null;
         }
+
+        private void Button_ActualThemeVariantChanged(object? sender, EventArgs e)
+        {
+        }
+
+        private void Button_ActualThemeVariantChanged_1(object? sender, EventArgs e)
+        {
+        }
     }
 }

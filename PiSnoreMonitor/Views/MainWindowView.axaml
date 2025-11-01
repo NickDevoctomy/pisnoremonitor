@@ -71,11 +71,13 @@
 													 x:Name="StereoAmplitudeDisplayControl">
 					</controls:StereoAmplitudeDisplay>
 
-                    <controls:DayNightCycleView Grid.Row="1">
+                    <controls:DayNightCycleView Grid.Row="1"
+                                                CurrentTime="{Binding CurrentDateTime}">
                         
                     </controls:DayNightCycleView>
 
-<!--					<Button HorizontalAlignment="Center"
+					<Button HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
 							Background="{Binding ButtonBackground}"
 							Content="{Binding ButtonText}"
 							Command="{Binding ToggleRecordingCommand}"
@@ -83,7 +85,8 @@
 							VerticalContentAlignment="Center"
 							Grid.Row="1"
 							Width="150"
-							Height="100"/>-->
+							Height="75"
+                            Margin="8"/>
 
 					<Panel Grid.Row="2"
                            Grid.ColumnSpan="2"

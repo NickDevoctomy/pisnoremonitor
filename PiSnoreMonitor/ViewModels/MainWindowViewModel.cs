@@ -9,6 +9,7 @@ using PiSnoreMonitor.Core.Extensions;
 using PiSnoreMonitor.Core.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Timers;
 
 namespace PiSnoreMonitor.ViewModels
 {
@@ -30,6 +31,9 @@ namespace PiSnoreMonitor.ViewModels
 
         [ObservableProperty]
         private IBrush buttonBackground = Brushes.LightGray;
+
+        [ObservableProperty]
+        private DateTime currentDateTime = DateTime.Now;
 
         [ObservableProperty]
         private string currentDateTimeText = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
@@ -84,6 +88,7 @@ namespace PiSnoreMonitor.ViewModels
 
         private DateTime _startedRecordingAt;
         private int _updateCounter = 0;
+        private System.Timers.Timer? _uiUpdateTimer;
 
         public MainWindowViewModel()
         {
@@ -111,6 +116,16 @@ namespace PiSnoreMonitor.ViewModels
             _systemMonitor.OnSystemStatusUpdate += SystemMonitor_OnSystemStatusUpdate;
 
             _systemMonitor.StartMonitoring();
+
+            _uiUpdateTimer = new System.Timers.Timer(1000);
+            _uiUpdateTimer.Elapsed += UiUpdateTimerElapsed;
+            _uiUpdateTimer.Start();
+        }
+
+        private void UiUpdateTimerElapsed(object? sender, ElapsedEventArgs e)
+        {
+            CurrentDateTime = DateTime.Now;
+            CurrentDateTimeText = CurrentDateTime.ToString("dd-MM-yyyy HH:mm:ss");
         }
 
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
