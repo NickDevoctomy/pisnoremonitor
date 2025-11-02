@@ -5,13 +5,6 @@ using Avalonia.Media.Imaging;
 
 namespace PiSnoreMonitor.Controls;
 
-internal class CloudData
-{
-    public int SpriteIndex { get; set; }
-    public double X { get; set; }
-    public double Y { get; set; }
-}
-
 internal class DayNightCycleView : Control
 {
     private const double SunRadius = 12.0;
@@ -42,7 +35,7 @@ internal class DayNightCycleView : Control
     private System.Random _random = new(Environment.TickCount);
     private TimeSpan _last;
     private double _accumMs;
-    private static List<Bitmap> _cloudSprites = new();
+    private static List<CachedStaticSprite> _cloudSprites = new();
     private List<CloudData> _clouds = new();
 
     public TimeSpan SunriseTime { get => GetValue(SunriseTimeProperty); set => SetValue(SunriseTimeProperty, value); }
@@ -461,7 +454,7 @@ internal class DayNightCycleView : Control
             {
                 SpriteIndex = spriteIndex, // Random cloud sprite
                 X = _random.NextDouble() * (Bounds.Width * 2), // Random X position across screen
-                Y = _random.NextDouble() * horizonY - sprite.PixelSize.Height // Random Y in upper sky area only
+                Y = _random.NextDouble() * horizonY - sprite.GetBitmap().PixelSize.Height // Random Y in upper sky area only
             };
             _clouds.Add(cloud);
         }
@@ -478,11 +471,11 @@ internal class DayNightCycleView : Control
             cloud.X -= CloudSpeed;
 
             // Check if cloud is completely out of view on the left
-            if (cloud.X < -_cloudSprites[cloud.SpriteIndex].PixelSize.Width)
+            if (cloud.X < -sprite.GetBitmap().PixelSize.Width)
             {
                 var horizonY = bounds.Height * (1.0 - HorizonHeight);
                 cloud.X = Bounds.Width + (_random.NextDouble() * Bounds.Width);
-                cloud.Y = _random.NextDouble() * horizonY - sprite.PixelSize.Height; // Random Y in upper sky area only
+                cloud.Y = _random.NextDouble() * horizonY - sprite.GetBitmap().PixelSize.Height; // Random Y in upper sky area only
             }
         }
     }
@@ -501,8 +494,8 @@ internal class DayNightCycleView : Control
             foreach (var cloud in _clouds)
             {
                 var sprite = _cloudSprites[cloud.SpriteIndex];
-                var rect = new Rect(cloud.X, cloud.Y, sprite.PixelSize.Width, sprite.PixelSize.Height);
-                ctx.DrawImage(sprite, rect);
+                var rect = new Rect(cloud.X, cloud.Y, sprite.GetBitmap().PixelSize.Width, sprite.GetBitmap().PixelSize.Height);
+                ctx.DrawImage(sprite.GetBitmap(), rect);
             }
         }
     }
@@ -512,9 +505,7 @@ internal class DayNightCycleView : Control
         var cloudSpriteFiles = Directory.GetFiles("images/sprites/clouds", "*.png");
         foreach (var cloudSpriteFile in cloudSpriteFiles)
         {
-            using var stream = File.OpenRead(cloudSpriteFile);
-            var bitmap = new Bitmap(stream);
-            _cloudSprites.Add(bitmap);
+            _cloudSprites.Add(new CachedStaticSprite(cloudSpriteFile));
         }
     }
 }
