@@ -12,6 +12,34 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="images\sprites\clouds\cloud_1.png" />
+    <None Remove="images\sprites\clouds\cloud_2.png" />
+    <None Remove="images\sprites\clouds\cloud_3.png" />
+    <None Remove="images\sprites\clouds\cloud_4.png" />
+    <None Remove="images\sprites\clouds\cloud_5.png" />
+    <None Remove="images\sprites\clouds\cloud_6.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="images\sprites\clouds\cloud_1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\sprites\clouds\cloud_2.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\sprites\clouds\cloud_3.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\sprites\clouds\cloud_4.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\sprites\clouds\cloud_5.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\sprites\clouds\cloud_6.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.6" />

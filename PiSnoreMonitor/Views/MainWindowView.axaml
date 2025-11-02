@@ -10,8 +10,7 @@
 		x:DataType="vm:MainWindowViewModel"
 		Title="PiSnoreMonitor"
 		WindowStartupLocation="CenterScreen"
-        Topmost="True"
-        WindowState="FullScreen">
+>
 	<Design.DataContext>
 		<vm:MainWindowViewModel/>
 	</Design.DataContext>
@@ -72,7 +71,8 @@
 					</controls:StereoAmplitudeDisplay>
 
                     <controls:DayNightCycleView Grid.Row="1"
-                                                CurrentTime="{Binding CurrentDateTime}">
+                                                CurrentTime="{Binding CurrentDateTime}"
+                                                ClipToBounds="True">
                         
                     </controls:DayNightCycleView>
 
