@@ -122,10 +122,12 @@ namespace PiSnoreMonitor.ViewModels
             _uiUpdateTimer.Start();
         }
 
+
         private void UiUpdateTimerElapsed(object? sender, ElapsedEventArgs e)
         {
             var now = DateTime.Now;
             CurrentDateTime = new TimeSpan(now.Hour, now.Minute, now.Second);
+            //CurrentDateTime = CurrentDateTime.Add(TimeSpan.FromSeconds(1));
             CurrentDateTimeText = now.ToString("dd-MM-yyyy HH:mm:ss");
         }
 

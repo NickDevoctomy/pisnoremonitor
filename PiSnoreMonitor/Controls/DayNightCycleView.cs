@@ -406,6 +406,44 @@ internal class DayNightCycleView : Control
         }
     }
 
+    private double CalculateCloudBrightness()
+    {
+        // Convert times to minutes since midnight for easier calculation
+        var currentMinutes = CurrentTime.Hours * 60 + CurrentTime.Minutes;
+        var sunriseMinutes = SunriseTime.Hours * 60 + SunriseTime.Minutes;
+        var sunsetMinutes = SunsetTime.Hours * 60 + SunsetTime.Minutes;
+
+        // Define transition durations (in minutes) - same as sky color transitions
+        var transitionDuration = 60; // 1 hour transition period
+        var sunriseTransitionStart = sunriseMinutes - transitionDuration / 2;
+        var sunriseTransitionEnd = sunriseMinutes + transitionDuration / 2;
+        var sunsetTransitionStart = sunsetMinutes - transitionDuration / 2;
+        var sunsetTransitionEnd = sunsetMinutes + transitionDuration / 2;
+
+        if (currentMinutes >= sunriseTransitionEnd && currentMinutes <= sunsetTransitionStart)
+        {
+            // Full day time - clouds at full brightness
+            return 1.0;
+        }
+        else if (currentMinutes >= sunriseTransitionStart && currentMinutes <= sunriseTransitionEnd)
+        {
+            // Sunrise transition: clouds brighten from dark to full brightness
+            var progress = (double)(currentMinutes - sunriseTransitionStart) / transitionDuration;
+            return 0.1 + (0.9 * progress); // Brighten from 0.1 (very dark) to 1.0 (full brightness)
+        }
+        else if (currentMinutes >= sunsetTransitionStart && currentMinutes <= sunsetTransitionEnd)
+        {
+            // Sunset transition: clouds darken from full brightness to dark
+            var progress = (double)(currentMinutes - sunsetTransitionStart) / transitionDuration;
+            return 1.0 - (0.9 * progress); // Darken from 1.0 (full brightness) to 0.1 (very dark)
+        }
+        else
+        {
+            // Night time - clouds very dark (but not completely black so they're still visible)
+            return 0.1;
+        }
+    }
+
     private void RandomlyPositionClouds(Rect bounds)
     {
         if (_cloudSprites.Count == 0)
@@ -454,12 +492,18 @@ internal class DayNightCycleView : Control
         if (_cloudSprites.Count == 0 || _clouds.Count == 0)
             return;
 
-        // Draw each cloud as quick and simple as possible
-        foreach (var cloud in _clouds)
+        // Calculate cloud brightness based on time of day
+        var cloudBrightness = CalculateCloudBrightness();
+
+        // Draw each cloud with appropriate brightness using opacity
+        using (ctx.PushOpacity(cloudBrightness))
         {
-            var sprite = _cloudSprites[cloud.SpriteIndex];
-            var rect = new Rect(cloud.X, cloud.Y, sprite.PixelSize.Width, sprite.PixelSize.Height);
-            ctx.DrawImage(sprite, rect);
+            foreach (var cloud in _clouds)
+            {
+                var sprite = _cloudSprites[cloud.SpriteIndex];
+                var rect = new Rect(cloud.X, cloud.Y, sprite.PixelSize.Width, sprite.PixelSize.Height);
+                ctx.DrawImage(sprite, rect);
+            }
         }
     }
 
