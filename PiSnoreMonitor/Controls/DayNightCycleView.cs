@@ -494,8 +494,7 @@ internal class DayNightCycleView : Control
             foreach (var cloud in _clouds)
             {
                 var sprite = _cloudSprites[cloud.SpriteIndex];
-                var rect = new Rect(cloud.X, cloud.Y, sprite.GetBitmap().PixelSize.Width, sprite.GetBitmap().PixelSize.Height);
-                ctx.DrawImage(sprite.GetBitmap(), rect);
+                sprite.DrawImageUnscaled(ctx, cloud.X, cloud.Y);
             }
         }
     }
